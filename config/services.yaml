@@ -1,0 +1,17 @@
+- Group 1:
+  - AdGuard Home:
+      href: http://localhost:3000
+      description: Network-wide ad blocking
+      icon: adguard-home
+      widget:
+        type: adguard
+        url: http://localhost:3000
+  - Subgroup 1:
+    - Beszel:
+        href: http://localhost:8090
+        description: Lightweight server monitoring
+        icon: beszel
+        widget:
+          type: beszel
+          url: http://localhost:8090
+          key: your-api-key

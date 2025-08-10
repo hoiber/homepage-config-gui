@@ -1,0 +1,37 @@
+# Build stage
+FROM node:18-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Configure npm to use less memory and be more efficient
+RUN npm config set maxsockets 3
+RUN npm config set fund false
+RUN npm config set audit false
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies with memory and speed optimization
+RUN npm ci --prefer-offline --no-audit --progress=false
+
+# Copy source code
+COPY . .
+
+# Build the application with memory limit
+RUN NODE_OPTIONS="--max_old_space_size=2048" npm run build
+
+# Production stage
+FROM nginx:alpine
+
+# Copy built application from builder stage
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Copy custom nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

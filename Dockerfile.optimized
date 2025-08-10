@@ -1,0 +1,60 @@
+# Build stage
+FROM node:18-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Configure npm to use less memory
+RUN npm config set maxsockets 3
+RUN npm config set fund false
+RUN npm config set audit false
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies with memory optimization
+RUN npm ci --prefer-offline --no-audit --progress=false
+
+# Copy source code
+COPY . .
+
+# Build the application with memory limit
+RUN NODE_OPTIONS="--max_old_space_size=2048" npm run build
+
+# Production stage
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Configure npm
+RUN npm config set fund false
+RUN npm config set audit false
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies only with optimization
+RUN npm ci --only=production --prefer-offline --no-audit --progress=false
+
+# Copy built application and server
+COPY --from=builder /app/build ./build
+COPY server.js ./
+
+# Create config directory
+RUN mkdir -p /config
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=3001
+ENV HOMEPAGE_CONFIG_PATH=/config
+ENV SERVICES_FILE=services.yaml
+ENV SETTINGS_FILE=settings.yaml
+ENV WIDGETS_FILE=widgets.yaml
+ENV ENABLE_LIVE_UPDATES=false
+
+# Expose port
+EXPOSE 3001
+
+# Start the server
+CMD ["node", "server.js"]

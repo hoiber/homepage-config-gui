@@ -1,0 +1,5 @@
+- Development:
+  - GitLab:
+      href: http://localhost:8080
+      description: Git repository management
+      icon: gitlab

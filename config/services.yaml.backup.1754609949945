@@ -1,0 +1,21 @@
+- Development:
+  - GitLab:
+      href: http://localhost:8080
+      description: Git repository management
+      icon: gitlab
+  - Authentik:
+      href: http://localhost:9000
+      description: Identity provider
+      icon: authentik
+      widget:
+        type: authentik
+        url: http://localhost:9000
+        key: your-api-key
+  - BookStack:
+      href: http://localhost:8080
+      description: Wiki platform
+      icon: bookstack
+      widget:
+        type: bookstack
+        url: http://localhost:8080
+        key: your-api-key

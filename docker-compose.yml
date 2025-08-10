@@ -1,0 +1,104 @@
+
+services:
+  # Homepage dashboard
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    profiles:
+      - homepage
+      - full
+
+  # Static version (no live updates, nginx-based)
+  homepage-config-gui-static:
+    build:
+      context: .
+      dockerfile: Dockerfile.static
+    image: homepage-config-gui:static
+    container_name: homepage-config-gui-static
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    # Uncomment the labels below if using Traefik
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.homepage-config-gui-static.rule=Host(`config.yourdomain.com`)"
+    #   - "traefik.http.routers.homepage-config-gui-static.tls=true"
+    #   - "traefik.http.routers.homepage-config-gui-static.tls.certresolver=letsencrypt"
+    #   - "traefik.http.services.homepage-config-gui-static.loadbalancer.server.port=80"
+    profiles:
+      - static
+
+  # Live updates version (Node.js backend with file system access)
+  homepage-config-gui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: homepage-config-gui:live
+    container_name: homepage-config-gui
+    ports:
+      - "8080:3001"
+    volumes:
+      # Mount your Homepage config directory here
+      - ./config:/config
+      # Or mount your actual Homepage config directory:
+      # - /path/to/your/homepage/config:/config
+    environment:
+      - ENABLE_LIVE_UPDATES=true
+      - HOMEPAGE_CONFIG_PATH=/config
+      - SERVICES_FILE=services.yaml
+      - SETTINGS_FILE=settings.yaml
+      - WIDGETS_FILE=widgets.yaml
+      - NODE_ENV=production
+    restart: unless-stopped
+    # Uncomment the labels below if using Traefik
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.homepage-config-gui.rule=Host(`config.yourdomain.com`)"
+    #   - "traefik.http.routers.homepage-config-gui.tls=true"
+    #   - "traefik.http.routers.homepage-config-gui.tls.certresolver=letsencrypt"
+    #   - "traefik.http.services.homepage-config-gui.loadbalancer.server.port=3001"
+    profiles:
+      - live
+      - full
+
+  # Example with external Homepage config directory
+  # homepage-external:
+  #   image: ghcr.io/gethomepage/homepage:latest
+  #   container_name: homepage-external
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - /var/lib/homepage:/app/config
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   restart: unless-stopped
+  #   profiles:
+  #     - external
+  
+  # homepage-config-gui-external:
+  #   build: .
+  #   container_name: homepage-config-gui-external
+  #   ports:
+  #     - "8080:3001"
+  #   volumes:
+  #     - /var/lib/homepage:/config
+  #   environment:
+  #     - ENABLE_LIVE_UPDATES=true
+  #     - HOMEPAGE_CONFIG_PATH=/config
+  #   restart: unless-stopped
+  #   profiles:
+  #     - external
+
+# Uncomment networks section if you want to use external networks
+# networks:
+#   homepage-net:
+#     external: true

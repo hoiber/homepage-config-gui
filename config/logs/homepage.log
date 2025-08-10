@@ -1,0 +1,94 @@
+[2025-08-06T11:26:50.644Z] info: kubernetes.yaml was copied to the config folder
+[2025-08-06T11:29:24.255Z] info: docker.yaml was copied to the config folder
+[2025-08-06T11:29:24.256Z] info: bookmarks.yaml was copied to the config folder
+[2025-08-06T11:29:24.257Z] info: proxmox.yaml was copied to the config folder
+[2025-08-06T11:29:24.269Z] info: widgets.yaml was copied to the config folder
+[2025-08-06T11:29:24.270Z] info: custom.css was copied to the config folder
+[2025-08-06T11:29:24.271Z] info: custom.js was copied to the config folder
+[2025-08-06T11:29:39.714Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/core/users/...
+[2025-08-06T11:29:39.716Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-06T11:29:39.716Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/core/users/?page_size=1
+[2025-08-06T11:29:39.716Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/events/events/per_month/...
+[2025-08-06T11:29:39.717Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-06T11:29:39.717Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/events/events/per_month/?action=login
+[2025-08-06T11:29:39.718Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/events/events/per_month/...
+[2025-08-06T11:29:39.718Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-06T11:29:39.719Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/events/events/per_month/?action=login_failed
+[2025-08-06T11:29:49.979Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/core/users/...
+[2025-08-06T11:29:49.979Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-06T11:29:49.980Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/core/users/?page_size=1
+[2025-08-06T11:29:49.995Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/events/events/per_month/...
+[2025-08-06T11:29:49.996Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-06T11:29:49.996Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/events/events/per_month/?action=login
+[2025-08-06T11:29:49.996Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/events/events/per_month/...
+[2025-08-06T11:29:49.997Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-06T11:29:49.997Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/events/events/per_month/?action=login_failed
+[2025-08-07T23:38:28.469Z] error: <httpProxy> Error calling https://api.github.com/repos/gethomepage/homepage/releases...
+[2025-08-07T23:38:28.472Z] error: <httpProxy> [
+  500,
+  Error: connect ECONNREFUSED 4.237.22.34:443
+      at <unknown> (Error: connect ECONNREFUSED 4.237.22.34:443) {
+    errno: -111,
+    code: 'ECONNREFUSED',
+    syscall: 'connect',
+    address: '4.237.22.34',
+    port: 443
+  }
+]
+[2025-08-07T23:38:28.615Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/events/events/per_month/...
+[2025-08-07T23:38:28.616Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:38:28.616Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/events/events/per_month/?action=login
+[2025-08-07T23:38:28.616Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/events/events/per_month/...
+[2025-08-07T23:38:28.617Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:38:28.617Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/events/events/per_month/?action=login_failed
+[2025-08-07T23:38:28.617Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/core/users/...
+[2025-08-07T23:38:28.617Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:38:28.617Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/core/users/?page_size=1
+[2025-08-07T23:38:31.680Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/core/users/...
+[2025-08-07T23:38:31.681Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:38:31.681Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/core/users/?page_size=1
+[2025-08-07T23:38:31.691Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/events/events/per_month/...
+[2025-08-07T23:38:31.692Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:38:31.692Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/events/events/per_month/?action=login
+[2025-08-07T23:38:31.694Z] error: <httpProxy> Error calling http://localhost:9000/api/v3/events/events/per_month/...
+[2025-08-07T23:38:31.694Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:38:31.694Z] error: <credentialedProxyHandler> HTTP Error 500 calling http://localhost:9000/api/v3/events/events/per_month/?action=login_failed
+[2025-08-07T23:39:11.798Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-07T23:39:11.799Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:39:11.799Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-07T23:39:15.509Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-07T23:39:15.509Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:39:15.509Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-07T23:39:17.420Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-07T23:39:17.420Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:39:17.421Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-07T23:39:22.085Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-07T23:39:22.085Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:39:22.086Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-07T23:39:39.466Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-07T23:39:39.466Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:39:39.466Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-07T23:39:50.928Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-07T23:39:50.929Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:39:50.929Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-07T23:41:33.238Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-07T23:41:33.238Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:41:33.238Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-07T23:51:34.679Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-07T23:51:34.680Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-07T23:51:34.680Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-08T00:01:38.579Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-08T00:01:38.580Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-08T00:01:38.580Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-08T00:02:20.029Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-08T00:02:20.030Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-08T00:02:20.030Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-08T00:25:45.598Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-08T00:25:45.599Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-08T00:25:45.599Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-08T00:40:58.852Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-08T00:40:58.852Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-08T00:40:58.852Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
+[2025-08-08T00:41:00.958Z] error: <httpProxy> Error calling http://localhost:8090/api/admins/auth-with-password...
+[2025-08-08T00:41:00.959Z] error: <httpProxy> [ 500, [AggregateError: ] { code: 'ECONNREFUSED' } ]
+[2025-08-08T00:41:00.959Z] error: <beszelProxyHandler> Error 500 logging into beszel {"error":{"message":"Unknown error","url":"http://localhost:8090/api/admins/auth-with-password","rawError":[500,{"code":"ECONNREFUSED"}]}}
