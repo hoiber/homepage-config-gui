@@ -81,7 +81,6 @@ docker-compose --profile static up -d --build
 
 ### Option 4: Manual Installation
 ```bash
-cd homepage-config-gui
 npm install
 npm run build
 ENABLE_LIVE_UPDATES=true npm run server
@@ -257,7 +256,7 @@ GET  /api/config/{type}/backups    # List backup files
 ```bash
 # Clone repository
 git clone https://github.com/hoiber/homepage-config-editor.git
-cd homepage-config-editor/homepage-config-gui
+cd homepage-config-editor
 
 # Install dependencies
 npm install
@@ -304,23 +303,22 @@ npm test -- --coverage
 
 ```
 homepage-config-editor/
-├── homepage-config-gui/           # Main application directory
-│   ├── src/                      # React source code
-│   │   ├── App.js               # Main application component
-│   │   ├── index.js             # React entry point
-│   │   └── index.css            # Tailwind CSS imports
-│   ├── public/                  # Static assets
-│   ├── build/                   # Production build output
-│   ├── config/                  # Generated configuration files
-│   ├── server.js                # Express server for live updates
-│   ├── package.json             # Dependencies and scripts
-│   ├── Dockerfile               # Live updates container
-│   ├── Dockerfile.static        # Static nginx container
-│   ├── docker-compose.yml       # Multi-profile orchestration
-│   ├── nginx.conf              # Production nginx configuration
-│   └── README-LiveUpdates.md   # Detailed live updates documentation
-├── README.md                   # This file
-└── .gitignore                 # Git ignore patterns
+├── src/                         # React source code
+│   ├── App.js                  # Main application component
+│   ├── index.js                # React entry point
+│   └── index.css               # Tailwind CSS imports
+├── public/                     # Static assets
+├── build/                      # Production build output
+├── config/                     # Generated configuration files
+├── server.js                   # Express server for live updates
+├── package.json                # Dependencies and scripts
+├── Dockerfile                  # Live updates container
+├── Dockerfile.static           # Static nginx container
+├── docker-compose.yml          # Multi-profile orchestration
+├── nginx.conf                 # Production nginx configuration
+├── README-LiveUpdates.md      # Detailed live updates documentation
+├── README.md                  # This file
+└── .gitignore                # Git ignore patterns
 ```
 
 ## 🐛 Troubleshooting

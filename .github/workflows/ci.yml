@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run linter
+      run: npm run build  # This includes linting via react-scripts
+    
+    - name: Run tests
+      run: npm test -- --coverage --watchAll=false
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      if: matrix.node-version == '18.x'
+      with:
+        file: ./coverage/lcov.info
+        fail_ci_if_error: false
+
+  build-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build live image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: homepage-config-gui:live-test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build static image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.static
+        push: false
+        tags: homepage-config-gui:static-test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Test live container
+      run: |
+        docker run -d --name test-live -p 3001:3001 homepage-config-gui:live-test
+        sleep 10
+        curl -f http://localhost:3001/api/health || exit 1
+        docker stop test-live
+    
+    - name: Test static container
+      run: |
+        docker run -d --name test-static -p 8080:80 homepage-config-gui:static-test
+        sleep 5
+        curl -f http://localhost:8080/health || exit 1
+        docker stop test-static
