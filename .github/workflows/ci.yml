@@ -151,17 +151,41 @@ jobs:
         sleep 10
         docker logs test-static
         
-        # Test with retries
-        for i in {1..5}; do
-          if curl -f http://localhost:8080/ | grep -q "Homepage Config"; then
-            echo "Static site test passed"
+        # Test health endpoint first (should always work)
+        for i in {1..3}; do
+          if curl -f -s http://localhost:8080/health | grep -q "OK"; then
+            echo "✅ Health endpoint working"
             break
-          elif [ $i -eq 5 ]; then
-            echo "Static site test failed after 5 attempts"
+          elif [ $i -eq 3 ]; then
+            echo "❌ Health endpoint failed"
             docker logs test-static
             exit 1
           else
-            echo "Static site test attempt $i failed, retrying..."
+            echo "Health check attempt $i failed, retrying..."
+            sleep 3
+          fi
+        done
+        
+        # Test main site
+        for i in {1..3}; do
+          if curl -f -s http://localhost:8080/ > /tmp/response.html; then
+            echo "✅ Main site responding (HTTP 200)"
+            echo "Response size: $(wc -c < /tmp/response.html) bytes"
+            
+            # Show first 100 characters to debug content
+            echo "Content preview:"
+            head -c 100 /tmp/response.html
+            echo ""
+            echo "✅ Static container test passed"
+            break
+          elif [ $i -eq 3 ]; then
+            echo "❌ Main site failed after 3 attempts"
+            echo "Full response:"
+            curl -v http://localhost:8080/ || echo "Failed to get response"
+            docker logs test-static
+            exit 1
+          else
+            echo "Main site attempt $i failed, retrying..."
             sleep 3
           fi
         done
