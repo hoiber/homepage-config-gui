@@ -1053,6 +1053,34 @@ const HomepageConfigGUI = () => {
     return port ? `${baseUrl}:${port}` : baseUrl;
   };
 
+  // Helper to update service URL based on name change
+  const updateServiceUrl = (service, newName) => {
+    const cleanName = newName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const domain = uiPreferences.globalDomain || 'local';
+    return `http://${cleanName}.${domain}`;
+  };
+
+  // Function to update all service URLs based on current domain
+  const updateAllServiceUrls = () => {
+    setConfig(prev => ({
+      ...prev,
+      groups: prev.groups.map(group => ({
+        ...group,
+        services: group.services.map(service => ({
+          ...service,
+          href: updateServiceUrl(null, service.name)
+        })),
+        subgroups: (group.subgroups || []).map(subgroup => ({
+          ...subgroup,
+          services: subgroup.services.map(service => ({
+            ...service,
+            href: updateServiceUrl(null, service.name)
+          }))
+        }))
+      }))
+    }));
+  };
+
   // Information widgets configuration
   const [informationWidgets, setInformationWidgets] = useState({
     widgets: [
@@ -1292,7 +1320,7 @@ const HomepageConfigGUI = () => {
     } : {
       id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       name: 'New Service',
-      href: generateServiceUrl('newservice', '3000'),
+      href: updateServiceUrl(null, 'newservice'),
       description: '',
       icon: '',
       widget: null,
@@ -1401,7 +1429,7 @@ const HomepageConfigGUI = () => {
     } : {
       id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       name: 'New Service',
-      href: generateServiceUrl('newservice', '3000'),
+      href: updateServiceUrl(null, 'newservice'),
       description: '',
       icon: '',
       widget: null,
@@ -2450,6 +2478,37 @@ const HomepageConfigGUI = () => {
                   <label htmlFor="show-proxmox-tab-services" className="text-xs text-slate-400 cursor-pointer hover:text-slate-300 transition-colors">
                     Show Proxmox Tab {uiPreferences.showProxmoxTab && <span className="text-green-400">✓</span>}
                   </label>
+                </div>
+              </div>
+            </div>
+            
+            {/* Global Domain Configuration */}
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <div className="flex items-center space-x-2 mb-3">
+                <Cog className="h-4 w-4 text-slate-400" />
+                <span className="text-sm font-medium text-slate-300">Global Domain</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={uiPreferences.globalDomain || 'local'}
+                    onChange={(e) => {
+                      setUiPreferences(prev => ({ ...prev, globalDomain: e.target.value }));
+                    }}
+                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-slate-300 focus:outline-none focus:border-blue-500 text-sm"
+                    placeholder="local"
+                  />
+                  <button
+                    onClick={updateAllServiceUrls}
+                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white text-xs font-medium transition-colors"
+                    title="Update all service URLs to use this domain"
+                  >
+                    Update All
+                  </button>
+                </div>
+                <div className="text-xs text-slate-400">
+                  Services will use "servicename.{uiPreferences.globalDomain || 'local'}" format for URLs
                 </div>
               </div>
             </div>
