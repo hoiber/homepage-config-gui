@@ -2720,31 +2720,23 @@ const HomepageConfigGUI = () => {
                         </div>
 
                         {/* Proxmox Configuration */}
-                        <div className="mt-4 pt-3 border-t border-slate-600">
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="text-slate-300 text-sm font-medium">Proxmox Configuration</label>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                id={`proxmox-enabled-${service.id}`}
-                                checked={service.enableProxmox || false}
-                                onChange={(e) => {
-                                  const enabled = e.target.checked;
-                                  updateService(service.id, { 
-                                    enableProxmox: enabled,
-                                    ...(enabled && !service.proxmoxNode ? { proxmoxNode: 'pve' } : {}),
-                                    ...(enabled && !service.proxmoxVMID ? { proxmoxVMID: 101 } : {}),
-                                    ...(enabled && !service.proxmoxType ? { proxmoxType: 'qemu' } : {})
-                                  });
-                                }}
-                                className="rounded text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-800 text-xs"
-                              />
-                              <label htmlFor={`proxmox-enabled-${service.id}`} className="text-xs text-slate-400 cursor-pointer">
-                                Enable {service.enableProxmox && <span className="text-green-400">✓</span>}
-                              </label>
+                        {service.enableProxmox && (
+                          <div className="mt-4 pt-3 border-t border-slate-600">
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="text-slate-300 text-sm font-medium">Proxmox Configuration</label>
+                              <button
+                                onClick={() => updateService(service.id, { 
+                                  enableProxmox: false,
+                                  proxmoxNode: undefined,
+                                  proxmoxVMID: undefined,
+                                  proxmoxType: undefined
+                                })}
+                                className="text-red-400 hover:text-red-300 text-xs"
+                                title="Remove Proxmox Configuration"
+                              >
+                                Remove
+                              </button>
                             </div>
-                          </div>
-                          {service.enableProxmox && (
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               <div>
                                 <label className="block text-xs text-slate-400 mb-1">Node Name</label>
@@ -2778,8 +2770,26 @@ const HomepageConfigGUI = () => {
                                 </select>
                               </div>
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
+                        
+                        {/* Add Proxmox Configuration Button */}
+                        {!service.enableProxmox && (
+                          <div className="mt-4 pt-3 border-t border-slate-600">
+                            <button
+                              onClick={() => updateService(service.id, { 
+                                enableProxmox: true,
+                                proxmoxNode: 'pve',
+                                proxmoxVMID: 101,
+                                proxmoxType: 'qemu'
+                              })}
+                              className="flex items-center space-x-2 text-slate-400 hover:text-blue-400 transition-colors text-sm"
+                            >
+                              <Plus className="h-4 w-4" />
+                              <span>Add Proxmox Configuration</span>
+                            </button>
+                          </div>
+                        )}
 
                         {/* Proxmox Backup Server Configuration */}
                         {service.widget?.type === 'proxmoxbackupserver' && (
@@ -3089,31 +3099,23 @@ const HomepageConfigGUI = () => {
                             </div>
 
                             {/* Proxmox Configuration */}
-                            <div className="mt-3 pt-2 border-t border-slate-500">
-                              <div className="flex items-center justify-between mb-1">
-                                <label className="text-slate-300 text-xs font-medium">Proxmox Configuration</label>
-                                <div className="flex items-center space-x-2">
-                                  <input
-                                    type="checkbox"
-                                    id={`proxmox-enabled-sub-${service.id}`}
-                                    checked={service.enableProxmox || false}
-                                    onChange={(e) => {
-                                      const enabled = e.target.checked;
-                                      updateService(service.id, { 
-                                        enableProxmox: enabled,
-                                        ...(enabled && !service.proxmoxNode ? { proxmoxNode: 'pve' } : {}),
-                                        ...(enabled && !service.proxmoxVMID ? { proxmoxVMID: 101 } : {}),
-                                        ...(enabled && !service.proxmoxType ? { proxmoxType: 'qemu' } : {})
-                                      });
-                                    }}
-                                    className="rounded text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-800 text-xs"
-                                  />
-                                  <label htmlFor={`proxmox-enabled-sub-${service.id}`} className="text-xs text-slate-400 cursor-pointer">
-                                    Enable {service.enableProxmox && <span className="text-green-400">✓</span>}
-                                  </label>
+                            {service.enableProxmox && (
+                              <div className="mt-3 pt-2 border-t border-slate-500">
+                                <div className="flex items-center justify-between mb-1">
+                                  <label className="text-slate-300 text-xs font-medium">Proxmox Configuration</label>
+                                  <button
+                                    onClick={() => updateService(service.id, { 
+                                      enableProxmox: false,
+                                      proxmoxNode: undefined,
+                                      proxmoxVMID: undefined,
+                                      proxmoxType: undefined
+                                    })}
+                                    className="text-red-400 hover:text-red-300 text-xs"
+                                    title="Remove Proxmox Configuration"
+                                  >
+                                    Remove
+                                  </button>
                                 </div>
-                              </div>
-                              {service.enableProxmox && (
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                   <div>
                                     <label className="block text-xs text-slate-400 mb-1">Node Name</label>
@@ -3147,8 +3149,26 @@ const HomepageConfigGUI = () => {
                                     </select>
                                   </div>
                                 </div>
-                              )}
-                            </div>
+                              </div>
+                            )}
+                            
+                            {/* Add Proxmox Configuration Button */}
+                            {!service.enableProxmox && (
+                              <div className="mt-3 pt-2 border-t border-slate-500">
+                                <button
+                                  onClick={() => updateService(service.id, { 
+                                    enableProxmox: true,
+                                    proxmoxNode: 'pve',
+                                    proxmoxVMID: 101,
+                                    proxmoxType: 'qemu'
+                                  })}
+                                  className="flex items-center space-x-1 text-slate-400 hover:text-blue-400 transition-colors text-xs"
+                                >
+                                  <Plus className="h-3 w-3" />
+                                  <span>Add Proxmox Configuration</span>
+                                </button>
+                              </div>
+                            )}
 
                             {/* Proxmox Backup Server Configuration */}
                             {service.widget?.type === 'proxmoxbackupserver' && (
