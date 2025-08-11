@@ -138,7 +138,7 @@ jobs:
 
     - name: Inspect image
       run: |
-        docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}${{ matrix.variant.tag_suffix }}
+        docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
 
   update-description:
     runs-on: ubuntu-latest
