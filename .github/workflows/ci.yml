@@ -64,9 +64,9 @@ jobs:
     
     - name: Verify live image built
       run: |
-        if docker images | grep -q homepage-config-gui:live-test; then
+        if docker images | grep -q "homepage-config-gui.*live-test"; then
           echo "✅ Live image built successfully"
-          docker images | grep homepage-config-gui:live-test
+          docker images | grep "homepage-config-gui.*live-test"
         else
           echo "❌ Live image not found"
           docker images
@@ -87,9 +87,9 @@ jobs:
     
     - name: Verify static image built
       run: |
-        if docker images | grep -q homepage-config-gui:static-test; then
+        if docker images | grep -q "homepage-config-gui.*static-test"; then
           echo "✅ Static image built successfully"
-          docker images | grep homepage-config-gui:static-test
+          docker images | grep "homepage-config-gui.*static-test"
         else
           echo "❌ Static image not found"
           docker images
@@ -99,7 +99,7 @@ jobs:
     - name: Test live container
       run: |
         # Verify image exists
-        if ! docker images | grep -q homepage-config-gui:live-test; then
+        if ! docker images | grep -q "homepage-config-gui.*live-test"; then
           echo "❌ Live image not found in Docker daemon"
           docker images
           exit 1
@@ -137,7 +137,7 @@ jobs:
     - name: Test static container
       run: |
         # Verify image exists
-        if ! docker images | grep -q homepage-config-gui:static-test; then
+        if ! docker images | grep -q "homepage-config-gui.*static-test"; then
           echo "❌ Static image not found in Docker daemon"
           docker images
           exit 1
