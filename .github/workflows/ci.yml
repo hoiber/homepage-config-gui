@@ -64,8 +64,14 @@ jobs:
     
     - name: Verify live image built
       run: |
-        docker images | grep homepage-config-gui:live-test
-        echo "Live image built successfully"
+        if docker images | grep -q homepage-config-gui:live-test; then
+          echo "✅ Live image built successfully"
+          docker images | grep homepage-config-gui:live-test
+        else
+          echo "❌ Live image not found"
+          docker images
+          exit 1
+        fi
     
     - name: Build static image
       id: build-static
@@ -81,13 +87,24 @@ jobs:
     
     - name: Verify static image built
       run: |
-        docker images | grep homepage-config-gui:static-test
-        echo "Static image built successfully"
+        if docker images | grep -q homepage-config-gui:static-test; then
+          echo "✅ Static image built successfully"
+          docker images | grep homepage-config-gui:static-test
+        else
+          echo "❌ Static image not found"
+          docker images
+          exit 1
+        fi
     
     - name: Test live container
       run: |
         # Verify image exists
-        docker images | grep homepage-config-gui:live-test || (echo "Live image not found" && exit 1)
+        if ! docker images | grep -q homepage-config-gui:live-test; then
+          echo "❌ Live image not found in Docker daemon"
+          docker images
+          exit 1
+        fi
+        echo "✅ Live image found"
         
         # Run container with better error handling
         docker run -d --name test-live -p 3001:3001 \
@@ -120,7 +137,12 @@ jobs:
     - name: Test static container
       run: |
         # Verify image exists
-        docker images | grep homepage-config-gui:static-test || (echo "Static image not found" && exit 1)
+        if ! docker images | grep -q homepage-config-gui:static-test; then
+          echo "❌ Static image not found in Docker daemon"
+          docker images
+          exit 1
+        fi
+        echo "✅ Static image found"
         
         # Run container
         docker run -d --name test-static -p 8080:80 homepage-config-gui:static-test
