@@ -1024,9 +1024,15 @@ const HomepageConfigGUI = () => {
   const [uiPreferences, setUiPreferences] = useState(() => {
     try {
       const saved = localStorage.getItem('homepage-config-gui-preferences');
-      return saved ? JSON.parse(saved) : { showProxmoxTab: false };
+      return saved ? JSON.parse(saved) : { 
+        showProxmoxTab: false,
+        globalDomain: 'local'
+      };
     } catch (error) {
-      return { showProxmoxTab: false };
+      return { 
+        showProxmoxTab: false,
+        globalDomain: 'local'
+      };
     }
   });
 
@@ -1038,6 +1044,14 @@ const HomepageConfigGUI = () => {
       console.warn('Failed to save UI preferences to localStorage:', error);
     }
   }, [uiPreferences]);
+
+  // Helper to generate service URL with domain pattern
+  const generateServiceUrl = (serviceName, port, protocol = 'http') => {
+    const domain = uiPreferences.globalDomain || 'local';
+    const cleanName = serviceName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const baseUrl = `${protocol}://${cleanName}.${domain}`;
+    return port ? `${baseUrl}:${port}` : baseUrl;
+  };
 
   // Information widgets configuration
   const [informationWidgets, setInformationWidgets] = useState({
@@ -1263,11 +1277,20 @@ const HomepageConfigGUI = () => {
   const addService = (groupId, quickService = null) => {
     const newService = quickService ? {
       id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-      ...quickService
+      ...quickService,
+      href: quickService.href.includes('localhost') 
+        ? quickService.href.replace('http://localhost', generateServiceUrl(quickService.name, '').replace(/:[^:]*$/, ''))
+        : quickService.href,
+      widget: quickService.widget && quickService.widget.url && quickService.widget.url.includes('localhost')
+        ? {
+            ...quickService.widget,
+            url: quickService.widget.url.replace('http://localhost', generateServiceUrl(quickService.name, '').replace(/:[^:]*$/, ''))
+          }
+        : quickService.widget
     } : {
       id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       name: 'New Service',
-      href: 'http://localhost:3000',
+      href: generateServiceUrl('newservice', '3000'),
       description: '',
       icon: '',
       widget: null,
@@ -1361,11 +1384,20 @@ const HomepageConfigGUI = () => {
   const addServiceToSubgroup = (parentGroupId, subgroupId, quickService = null) => {
     const newService = quickService ? {
       id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-      ...quickService
+      ...quickService,
+      href: quickService.href.includes('localhost') 
+        ? quickService.href.replace('http://localhost', generateServiceUrl(quickService.name, '').replace(/:[^:]*$/, ''))
+        : quickService.href,
+      widget: quickService.widget && quickService.widget.url && quickService.widget.url.includes('localhost')
+        ? {
+            ...quickService.widget,
+            url: quickService.widget.url.replace('http://localhost', generateServiceUrl(quickService.name, '').replace(/:[^:]*$/, ''))
+          }
+        : quickService.widget
     } : {
       id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       name: 'New Service',
-      href: 'http://localhost:3000',
+      href: generateServiceUrl('newservice', '3000'),
       description: '',
       icon: '',
       widget: null,
@@ -3534,6 +3566,25 @@ const HomepageConfigGUI = () => {
                         Enable the Proxmox tab for VM/container configuration and monitoring
                       </div>
                     </label>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="global-domain" className="block text-slate-300 text-sm font-medium">
+                      Global Domain
+                    </label>
+                    <input
+                      type="text"
+                      id="global-domain"
+                      value={uiPreferences.globalDomain || 'local'}
+                      onChange={(e) => {
+                        setUiPreferences(prev => ({ ...prev, globalDomain: e.target.value }));
+                      }}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-slate-300 focus:outline-none focus:border-blue-500"
+                      placeholder="local"
+                    />
+                    <div className="text-xs text-slate-400">
+                      New services will use "servicename.{uiPreferences.globalDomain || 'local'}" format instead of localhost
+                    </div>
                   </div>
                 </div>
               </div>
