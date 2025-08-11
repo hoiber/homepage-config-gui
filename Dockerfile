@@ -7,8 +7,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Ensure we're using npm, not yarn
+RUN rm -f yarn.lock .yarnrc* || true
+
 # Install dependencies
-RUN npm ci
+RUN npm ci --no-audit --no-fund
 
 # Copy source code
 COPY . .
@@ -25,8 +28,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Ensure we're using npm, not yarn
+RUN rm -f yarn.lock .yarnrc* || true
+
 # Install production dependencies only
-RUN npm ci --only=production
+RUN npm ci --only=production --no-audit --no-fund
 
 # Copy built application and server
 COPY --from=builder /app/build ./build
