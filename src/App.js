@@ -1020,6 +1020,25 @@ const HomepageConfigGUI = () => {
   const [editingService, setEditingService] = useState(null);
   const [collapsedServices, setCollapsedServices] = useState({});
   
+  // UI preferences (load from localStorage)
+  const [uiPreferences, setUiPreferences] = useState(() => {
+    try {
+      const saved = localStorage.getItem('homepage-config-gui-preferences');
+      return saved ? JSON.parse(saved) : { showProxmoxTab: false };
+    } catch (error) {
+      return { showProxmoxTab: false };
+    }
+  });
+
+  // Save UI preferences to localStorage when they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('homepage-config-gui-preferences', JSON.stringify(uiPreferences));
+    } catch (error) {
+      console.warn('Failed to save UI preferences to localStorage:', error);
+    }
+  }, [uiPreferences]);
+
   // Information widgets configuration
   const [informationWidgets, setInformationWidgets] = useState({
     widgets: [
@@ -2234,17 +2253,19 @@ const HomepageConfigGUI = () => {
             Information Widgets
           </button>
           
-          <button
-            onClick={() => setActiveTab('proxmox')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              activeTab === 'proxmox'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700'
-            }`}
-          >
-            <Cog className="h-4 w-4" />
-            Proxmox
-          </button>
+          {uiPreferences.showProxmoxTab && (
+            <button
+              onClick={() => setActiveTab('proxmox')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                activeTab === 'proxmox'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              <Cog className="h-4 w-4" />
+              Proxmox
+            </button>
+          )}
         </div>
 
         {/* Hidden file input for import */}
@@ -2366,6 +2387,35 @@ const HomepageConfigGUI = () => {
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {/* Config Builder */}
           <div className="space-y-6">
+            {/* Interface Preferences */}
+            <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Cog className="h-4 w-4 text-slate-400" />
+                  <span className="text-sm font-medium text-slate-300">Interface Options</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="show-proxmox-tab-services"
+                    checked={uiPreferences.showProxmoxTab}
+                    onChange={(e) => {
+                      const showTab = e.target.checked;
+                      setUiPreferences(prev => ({ ...prev, showProxmoxTab: showTab }));
+                      // If hiding the Proxmox tab and it's currently active, switch to services tab
+                      if (!showTab && activeTab === 'proxmox') {
+                        setActiveTab('services');
+                      }
+                    }}
+                    className="rounded text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-800 text-xs"
+                  />
+                  <label htmlFor="show-proxmox-tab-services" className="text-xs text-slate-400 cursor-pointer hover:text-slate-300 transition-colors">
+                    Show Proxmox Tab {uiPreferences.showProxmoxTab && <span className="text-green-400">✓</span>}
+                  </label>
+                </div>
+              </div>
+            </div>
+            
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Service Groups</h2>
               <button
@@ -3455,6 +3505,35 @@ const HomepageConfigGUI = () => {
                       className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
                       placeholder="your-weatherapi-key"
                     />
+                  </div>
+                </div>
+              </div>
+
+              {/* UI Preferences */}
+              <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                <h3 className="text-lg font-medium mb-4">Interface Preferences</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="show-proxmox-tab"
+                      checked={uiPreferences.showProxmoxTab}
+                      onChange={(e) => {
+                      const showTab = e.target.checked;
+                      setUiPreferences(prev => ({ ...prev, showProxmoxTab: showTab }));
+                      // If hiding the Proxmox tab and it's currently active, switch to services tab
+                      if (!showTab && activeTab === 'proxmox') {
+                        setActiveTab('services');
+                      }
+                    }}
+                      className="rounded text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-800"
+                    />
+                    <label htmlFor="show-proxmox-tab" className="text-slate-300 text-sm">
+                      <span className="font-medium">Show Proxmox Configuration Tab</span>
+                      <div className="text-xs text-slate-400 mt-1">
+                        Enable the Proxmox tab for VM/container configuration and monitoring
+                      </div>
+                    </label>
                   </div>
                 </div>
               </div>
