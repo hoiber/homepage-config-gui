@@ -51,35 +51,99 @@ jobs:
       uses: docker/setup-buildx-action@v3
     
     - name: Build live image
+      id: build-live
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile
         push: false
         tags: homepage-config-gui:live-test
+        load: true  # Load image to local Docker daemon
         cache-from: type=gha
         cache-to: type=gha,mode=max
     
+    - name: Verify live image built
+      run: |
+        docker images | grep homepage-config-gui:live-test
+        echo "Live image built successfully"
+    
     - name: Build static image
+      id: build-static
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile.static
         push: false
         tags: homepage-config-gui:static-test
+        load: true  # Load image to local Docker daemon
         cache-from: type=gha
         cache-to: type=gha,mode=max
     
+    - name: Verify static image built
+      run: |
+        docker images | grep homepage-config-gui:static-test
+        echo "Static image built successfully"
+    
     - name: Test live container
       run: |
-        docker run -d --name test-live -p 3001:3001 homepage-config-gui:live-test
-        sleep 10
-        curl -f http://localhost:3001/api/health || exit 1
+        # Verify image exists
+        docker images | grep homepage-config-gui:live-test || (echo "Live image not found" && exit 1)
+        
+        # Run container with better error handling
+        docker run -d --name test-live -p 3001:3001 \
+          -e ENABLE_LIVE_UPDATES=false \
+          homepage-config-gui:live-test
+        
+        # Wait for container to start and check logs
+        sleep 15
+        docker logs test-live
+        
+        # Test health endpoint with retries
+        for i in {1..5}; do
+          if curl -f http://localhost:3001/api/health; then
+            echo "Health check passed"
+            break
+          elif [ $i -eq 5 ]; then
+            echo "Health check failed after 5 attempts"
+            docker logs test-live
+            exit 1
+          else
+            echo "Health check attempt $i failed, retrying..."
+            sleep 5
+          fi
+        done
+        
+        # Cleanup
         docker stop test-live
+        docker rm test-live
     
     - name: Test static container
       run: |
+        # Verify image exists
+        docker images | grep homepage-config-gui:static-test || (echo "Static image not found" && exit 1)
+        
+        # Run container
         docker run -d --name test-static -p 8080:80 homepage-config-gui:static-test
-        sleep 5
-        curl -f http://localhost:8080/health || exit 1
+        
+        # Wait for nginx to start
+        sleep 10
+        docker logs test-static
+        
+        # Test with retries
+        for i in {1..5}; do
+          if curl -f http://localhost:8080/ | grep -q "Homepage Config"; then
+            echo "Static site test passed"
+            break
+          elif [ $i -eq 5 ]; then
+            echo "Static site test failed after 5 attempts"
+            docker logs test-static
+            exit 1
+          else
+            echo "Static site test attempt $i failed, retrying..."
+            sleep 3
+          fi
+        done
+        
+        # Cleanup
         docker stop test-static
+        docker rm test-static

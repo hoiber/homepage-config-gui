@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # Homepage Dashboard
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/app/config # Shared config volume
+      - /var/run/docker.sock:/var/run/docker.sock:ro # For Docker widget (optional)
+    environment:
+      - PUID=1000
+      - PGID=1000
+    restart: unless-stopped
+
+  # Homepage Config GUI
+  homepage-config-gui:
+    image: hoiber/homepage-config-editor:latest
+    container_name: homepage-config-gui
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./config:/config # Shared config volume with Homepage
+    environment:
+      - ENABLE_LIVE_UPDATES=true
+      - HOMEPAGE_CONFIG_PATH=/config
+    restart: unless-stopped
+    depends_on:
+      - homepage
+
+# Create shared config directory
+# Run: mkdir -p ./config && chmod 755 ./config

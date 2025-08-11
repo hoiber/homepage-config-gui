@@ -44,7 +44,62 @@ A comprehensive web-based GUI for creating, editing, and managing [Homepage](htt
 
 ## 🚀 Quick Start
 
-### Option 1: Docker Compose (Recommended)
+### Option 1: Docker Hub Images (Recommended)
+
+**Complete setup with Homepage + Config Editor:**
+
+```bash
+# Create the example docker-compose.yml
+curl -o docker-compose.yml https://raw.githubusercontent.com/hoiber/homepage-config-gui/main/docker-compose.example.yml
+
+# Create config directory
+mkdir -p ./config && chmod 755 ./config
+
+# Start both services
+docker-compose up -d
+```
+
+**Or use this docker-compose.yml:**
+```yaml
+version: '3.8'
+
+services:
+  # Homepage Dashboard
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/app/config # Shared config volume
+      - /var/run/docker.sock:/var/run/docker.sock:ro # For Docker widget (optional)
+    environment:
+      - PUID=1000
+      - PGID=1000
+    restart: unless-stopped
+
+  # Homepage Config GUI
+  homepage-config-gui:
+    image: hoiber/homepage-config-editor:latest
+    container_name: homepage-config-gui
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./config:/config # Shared config volume with Homepage
+    environment:
+      - ENABLE_LIVE_UPDATES=true
+      - HOMEPAGE_CONFIG_PATH=/config
+    restart: unless-stopped
+    depends_on:
+      - homepage
+```
+
+**Access Your Applications:**
+- **Config Editor**: http://localhost:3001
+- **Homepage Dashboard**: http://localhost:3000
+- **Shared Config**: `./config/` directory
+
+### Option 2: Build from Source
 
 **Full Stack Deployment (Homepage + Config Editor):**
 ```bash
@@ -58,7 +113,7 @@ docker-compose --profile full up -d --build
 - **Homepage Dashboard**: http://localhost:3000
 - **Shared Config**: `./config/` directory
 
-### Option 2: Pre-built Docker Images
+### Option 3: Individual Docker Images
 ```bash
 # Full server with live updates
 docker run -p 3001:3001 -v ./config:/config -e ENABLE_LIVE_UPDATES=true hoiber/homepage-config-editor:latest
@@ -70,7 +125,7 @@ docker run -p 8080:80 hoiber/homepage-config-editor:static
 docker run -p 3001:3001 ghcr.io/hoiber/homepage-config-editor:latest
 ```
 
-### Option 3: Standalone Config Editor
+### Option 4: Standalone Config Editor
 ```bash
 # Live updates version
 docker-compose --profile live up -d --build
@@ -79,7 +134,7 @@ docker-compose --profile live up -d --build
 docker-compose --profile static up -d --build
 ```
 
-### Option 4: Manual Installation
+### Option 5: Manual Installation
 ```bash
 npm install
 npm run build
