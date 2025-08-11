@@ -1111,6 +1111,10 @@ const HomepageConfigGUI = () => {
             if (parsed.widgets) {
               setInformationWidgets({ widgets: parsed.widgets });
             }
+          } else if (type === 'proxmox') {
+            if (parsed.proxmox) {
+              setProxmoxConfig(prev => ({ ...prev, ...parsed.proxmox }));
+            }
           }
           setImportSuccess(`Loaded ${type} configuration from server`);
           setImportError('');
@@ -1142,6 +1146,8 @@ const HomepageConfigGUI = () => {
         content = generateSettingsYAML();
       } else if (type === 'widgets') {
         content = generateWidgetsYAML();
+      } else if (type === 'proxmox') {
+        content = generateProxmoxYAML();
       }
       
       if (!content || content.trim() === '# No configuration yet') {

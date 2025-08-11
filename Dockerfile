@@ -48,6 +48,7 @@ ENV HOMEPAGE_CONFIG_PATH=/config
 ENV SERVICES_FILE=services.yaml
 ENV SETTINGS_FILE=settings.yaml
 ENV WIDGETS_FILE=widgets.yaml
+ENV PROXMOX_FILE=proxmox.yaml
 ENV ENABLE_LIVE_UPDATES=false
 
 # Expose port

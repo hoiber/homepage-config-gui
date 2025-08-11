@@ -17,7 +17,7 @@ A comprehensive web-based GUI for creating, editing, and managing [Homepage](htt
 ### 🎯 **Core Functionality**
 - **Visual Configuration Builder**: Drag-and-drop interface for creating Homepage configurations
 - **Real-time YAML Preview**: Live preview of generated configuration files
-- **Three Configuration Types**: Services, Settings, and Information Widgets
+- **Four Configuration Types**: Services, Settings, Information Widgets, and Proxmox
 - **131+ Pre-configured Services**: Quick-add popular services with default configurations
 - **100+ Widget Types**: Comprehensive widget library organized by category
 
@@ -161,6 +161,7 @@ ENABLE_LIVE_UPDATES=true npm run server
 | `SERVICES_FILE` | `services.yaml` | Services configuration filename |
 | `SETTINGS_FILE` | `settings.yaml` | Settings configuration filename |
 | `WIDGETS_FILE` | `widgets.yaml` | Widgets configuration filename |
+| `PROXMOX_FILE` | `proxmox.yaml` | Proxmox configuration filename |
 | `PORT` | `3001` | Server port for live updates |
 
 ### Volume Mounting
@@ -176,6 +177,8 @@ volumes:
 **Media & Streaming:** Plex, Jellyfin, Emby, Sonarr, Radarr, Lidarr, Prowlarr, Bazarr, Tautulli, Overseerr, Jellyseerr
 
 **Infrastructure:** Proxmox, TrueNAS, pfSense, OPNsense, Unifi Controller, Pi-hole, AdGuard Home, Nginx Proxy Manager
+
+**Proxmox Integration:** Dedicated Proxmox configuration tab with VM/container management, node configuration, and API token setup
 
 **Development:** GitLab, GitHub, Gitea, Jenkins, Portainer, Grafana, Prometheus, InfluxDB, Home Assistant
 

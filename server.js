@@ -11,6 +11,7 @@ const HOMEPAGE_CONFIG_PATH = process.env.HOMEPAGE_CONFIG_PATH || '/config';
 const SERVICES_FILE = process.env.SERVICES_FILE || 'services.yaml';
 const SETTINGS_FILE = process.env.SETTINGS_FILE || 'settings.yaml';
 const WIDGETS_FILE = process.env.WIDGETS_FILE || 'widgets.yaml';
+const PROXMOX_FILE = process.env.PROXMOX_FILE || 'proxmox.yaml';
 
 // Enable live file updates (disabled by default for security)
 const ENABLE_LIVE_UPDATES = process.env.ENABLE_LIVE_UPDATES === 'true';
@@ -45,7 +46,8 @@ app.get('/api/config/status', async (req, res) => {
     const filesToCheck = [
       { key: 'services', path: getFilePath(SERVICES_FILE) },
       { key: 'settings', path: getFilePath(SETTINGS_FILE) },
-      { key: 'widgets', path: getFilePath(WIDGETS_FILE) }
+      { key: 'widgets', path: getFilePath(WIDGETS_FILE) },
+      { key: 'proxmox', path: getFilePath(PROXMOX_FILE) }
     ];
 
     for (const file of filesToCheck) {
@@ -91,6 +93,9 @@ app.get('/api/config/:type', async (req, res) => {
     case 'widgets':
       filename = WIDGETS_FILE;
       break;
+    case 'proxmox':
+      filename = PROXMOX_FILE;
+      break;
     default:
       return res.status(400).json({ error: 'Invalid configuration type' });
   }
@@ -131,6 +136,9 @@ app.post('/api/config/:type', async (req, res) => {
       break;
     case 'widgets':
       filename = WIDGETS_FILE;
+      break;
+    case 'proxmox':
+      filename = PROXMOX_FILE;
       break;
     default:
       return res.status(400).json({ error: 'Invalid configuration type' });
@@ -186,6 +194,9 @@ app.delete('/api/config/:type/backup/:timestamp', async (req, res) => {
     case 'widgets':
       filename = WIDGETS_FILE;
       break;
+    case 'proxmox':
+      filename = PROXMOX_FILE;
+      break;
     default:
       return res.status(400).json({ error: 'Invalid configuration type' });
   }
@@ -221,6 +232,9 @@ app.get('/api/config/:type/backups', async (req, res) => {
       break;
     case 'widgets':
       filename = WIDGETS_FILE;
+      break;
+    case 'proxmox':
+      filename = PROXMOX_FILE;
       break;
     default:
       return res.status(400).json({ error: 'Invalid configuration type' });
@@ -272,5 +286,6 @@ app.listen(PORT, () => {
     console.log(`Services file: ${getFilePath(SERVICES_FILE)}`);
     console.log(`Settings file: ${getFilePath(SETTINGS_FILE)}`);
     console.log(`Widgets file: ${getFilePath(WIDGETS_FILE)}`);
+    console.log(`Proxmox file: ${getFilePath(PROXMOX_FILE)}`);
   }
 });
