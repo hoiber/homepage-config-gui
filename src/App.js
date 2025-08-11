@@ -1286,7 +1286,9 @@ const HomepageConfigGUI = () => {
             ...quickService.widget,
             url: quickService.widget.url.replace('http://localhost', generateServiceUrl(quickService.name, '').replace(/:[^:]*$/, ''))
           }
-        : quickService.widget
+        : quickService.widget,
+      // Auto-enable Proxmox configuration for predefined Proxmox services
+      enableProxmox: quickService.name.toLowerCase() === 'proxmox' ? true : quickService.enableProxmox
     } : {
       id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       name: 'New Service',
@@ -1393,7 +1395,9 @@ const HomepageConfigGUI = () => {
             ...quickService.widget,
             url: quickService.widget.url.replace('http://localhost', generateServiceUrl(quickService.name, '').replace(/:[^:]*$/, ''))
           }
-        : quickService.widget
+        : quickService.widget,
+      // Auto-enable Proxmox configuration for predefined Proxmox services
+      enableProxmox: quickService.name.toLowerCase() === 'proxmox' ? true : quickService.enableProxmox
     } : {
       id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       name: 'New Service',
@@ -1897,10 +1901,12 @@ const HomepageConfigGUI = () => {
       if (service.description) serviceYaml += `${indent}    description: ${service.description}\n`;
       if (service.icon) serviceYaml += `${indent}    icon: ${service.icon}\n`;
       
-      // Add Proxmox configuration
-      if (service.proxmoxNode) serviceYaml += `${indent}    proxmoxNode: ${service.proxmoxNode}\n`;
-      if (service.proxmoxVMID) serviceYaml += `${indent}    proxmoxVMID: ${service.proxmoxVMID}\n`;
-      if (service.proxmoxType) serviceYaml += `${indent}    proxmoxType: ${service.proxmoxType}\n`;
+      // Add Proxmox configuration (only if enabled)
+      if (service.enableProxmox) {
+        if (service.proxmoxNode) serviceYaml += `${indent}    proxmoxNode: ${service.proxmoxNode}\n`;
+        if (service.proxmoxVMID) serviceYaml += `${indent}    proxmoxVMID: ${service.proxmoxVMID}\n`;
+        if (service.proxmoxType) serviceYaml += `${indent}    proxmoxType: ${service.proxmoxType}\n`;
+      }
       
       // Add ping configuration
       if (service.ping && service.ping.enabled) {
@@ -2714,9 +2720,31 @@ const HomepageConfigGUI = () => {
                         </div>
 
                         {/* Proxmox Configuration */}
-                        {service.name && commonServices[service.name.toLowerCase()] === commonServices.proxmox && (
-                          <div className="mt-4 pt-3 border-t border-slate-600">
-                            <label className="block text-slate-300 mb-2 text-sm font-medium">Proxmox Configuration</label>
+                        <div className="mt-4 pt-3 border-t border-slate-600">
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="text-slate-300 text-sm font-medium">Proxmox Configuration</label>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`proxmox-enabled-${service.id}`}
+                                checked={service.enableProxmox || false}
+                                onChange={(e) => {
+                                  const enabled = e.target.checked;
+                                  updateService(service.id, { 
+                                    enableProxmox: enabled,
+                                    ...(enabled && !service.proxmoxNode ? { proxmoxNode: 'pve' } : {}),
+                                    ...(enabled && !service.proxmoxVMID ? { proxmoxVMID: 101 } : {}),
+                                    ...(enabled && !service.proxmoxType ? { proxmoxType: 'qemu' } : {})
+                                  });
+                                }}
+                                className="rounded text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-800 text-xs"
+                              />
+                              <label htmlFor={`proxmox-enabled-${service.id}`} className="text-xs text-slate-400 cursor-pointer">
+                                Enable {service.enableProxmox && <span className="text-green-400">✓</span>}
+                              </label>
+                            </div>
+                          </div>
+                          {service.enableProxmox && (
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               <div>
                                 <label className="block text-xs text-slate-400 mb-1">Node Name</label>
@@ -2750,8 +2778,8 @@ const HomepageConfigGUI = () => {
                                 </select>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
 
                         {/* Proxmox Backup Server Configuration */}
                         {service.widget?.type === 'proxmoxbackupserver' && (
@@ -3061,9 +3089,31 @@ const HomepageConfigGUI = () => {
                             </div>
 
                             {/* Proxmox Configuration */}
-                            {service.name && commonServices[service.name.toLowerCase()] === commonServices.proxmox && (
-                              <div className="mt-3 pt-2 border-t border-slate-500">
-                                <label className="block text-slate-300 mb-1 text-xs font-medium">Proxmox Configuration</label>
+                            <div className="mt-3 pt-2 border-t border-slate-500">
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="text-slate-300 text-xs font-medium">Proxmox Configuration</label>
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`proxmox-enabled-sub-${service.id}`}
+                                    checked={service.enableProxmox || false}
+                                    onChange={(e) => {
+                                      const enabled = e.target.checked;
+                                      updateService(service.id, { 
+                                        enableProxmox: enabled,
+                                        ...(enabled && !service.proxmoxNode ? { proxmoxNode: 'pve' } : {}),
+                                        ...(enabled && !service.proxmoxVMID ? { proxmoxVMID: 101 } : {}),
+                                        ...(enabled && !service.proxmoxType ? { proxmoxType: 'qemu' } : {})
+                                      });
+                                    }}
+                                    className="rounded text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-800 text-xs"
+                                  />
+                                  <label htmlFor={`proxmox-enabled-sub-${service.id}`} className="text-xs text-slate-400 cursor-pointer">
+                                    Enable {service.enableProxmox && <span className="text-green-400">✓</span>}
+                                  </label>
+                                </div>
+                              </div>
+                              {service.enableProxmox && (
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                   <div>
                                     <label className="block text-xs text-slate-400 mb-1">Node Name</label>
@@ -3097,8 +3147,8 @@ const HomepageConfigGUI = () => {
                                     </select>
                                   </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
 
                             {/* Proxmox Backup Server Configuration */}
                             {service.widget?.type === 'proxmoxbackupserver' && (
