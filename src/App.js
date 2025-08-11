@@ -1038,6 +1038,31 @@ const HomepageConfigGUI = () => {
     ]
   });
 
+  // Proxmox configuration
+  const [proxmoxConfig, setProxmoxConfig] = useState({
+    enabled: false,
+    url: 'https://proxmox.example.com:8006',
+    username: 'api_token_id',
+    password: 'api_token_secret',
+    nodes: [
+      {
+        id: 'node1',
+        name: 'pve',
+        enabled: true
+      }
+    ],
+    vms: [
+      {
+        id: 'vm1',
+        name: 'Example VM',
+        vmid: 101,
+        node: 'pve',
+        type: 'qemu',
+        enabled: true
+      }
+    ]
+  });
+
   // Live update API functions
   const checkLiveUpdateStatus = async () => {
     try {
@@ -2018,13 +2043,50 @@ const HomepageConfigGUI = () => {
     return yamlStr;
   };
 
+  const generateProxmoxYAML = () => {
+    if (!proxmoxConfig.enabled) {
+      return '# Proxmox integration not enabled';
+    }
+    
+    let yamlStr = '# Proxmox Configuration\n';
+    yamlStr += `proxmox:\n`;
+    yamlStr += `  url: ${proxmoxConfig.url}\n`;
+    yamlStr += `  username: ${proxmoxConfig.username}\n`;
+    yamlStr += `  password: ${proxmoxConfig.password}\n`;
+    
+    if (proxmoxConfig.nodes && proxmoxConfig.nodes.length > 0) {
+      yamlStr += `  nodes:\n`;
+      proxmoxConfig.nodes
+        .filter(node => node.enabled)
+        .forEach(node => {
+          yamlStr += `    - name: ${node.name}\n`;
+        });
+    }
+    
+    if (proxmoxConfig.vms && proxmoxConfig.vms.length > 0) {
+      yamlStr += `  vms:\n`;
+      proxmoxConfig.vms
+        .filter(vm => vm.enabled)
+        .forEach(vm => {
+          yamlStr += `    - name: ${vm.name}\n`;
+          yamlStr += `      vmid: ${vm.vmid}\n`;
+          yamlStr += `      node: ${vm.node}\n`;
+          yamlStr += `      type: ${vm.type}\n`;
+        });
+    }
+    
+    return yamlStr;
+  };
+
   const downloadConfig = () => {
     const yamlContent = activeTab === 'services' ? generateYAML() : 
                        activeTab === 'settings' ? generateSettingsYAML() : 
-                       generateWidgetsYAML();
+                       activeTab === 'widgets' ? generateWidgetsYAML() : 
+                       generateProxmoxYAML();
     const fileName = activeTab === 'services' ? 'services.yaml' : 
                     activeTab === 'settings' ? 'settings.yaml' : 
-                    'widgets.yaml';
+                    activeTab === 'widgets' ? 'widgets.yaml' : 
+                    'proxmox.yaml';
     const blob = new Blob([yamlContent], { type: 'text/yaml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -2038,7 +2100,8 @@ const HomepageConfigGUI = () => {
     try {
       const yamlContent = activeTab === 'services' ? generateYAML() : 
                          activeTab === 'settings' ? generateSettingsYAML() : 
-                         generateWidgetsYAML();
+                         activeTab === 'widgets' ? generateWidgetsYAML() : 
+                         generateProxmoxYAML();
       if (!yamlContent) {
         setImportError('No configuration to copy');
         setTimeout(() => setImportError(''), 3000);
@@ -2164,6 +2227,18 @@ const HomepageConfigGUI = () => {
             <Info className="h-4 w-4" />
             Information Widgets
           </button>
+          
+          <button
+            onClick={() => setActiveTab('proxmox')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              activeTab === 'proxmox'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-300 hover:text-white hover:bg-slate-700'
+            }`}
+          >
+            <Cog className="h-4 w-4" />
+            Proxmox
+          </button>
         </div>
 
         {/* Hidden file input for import */}
@@ -2208,7 +2283,10 @@ const HomepageConfigGUI = () => {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-semibold">
-              {activeTab === 'services' ? 'Services Configuration' : 'Settings Configuration'}
+              {activeTab === 'services' ? 'Services Configuration' : 
+               activeTab === 'settings' ? 'Settings Configuration' :
+               activeTab === 'widgets' ? 'Information Widgets Configuration' :
+               'Proxmox Configuration'}
             </h2>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -2231,7 +2309,7 @@ const HomepageConfigGUI = () => {
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
             >
               <Download className="h-4 w-4" />
-              Download {activeTab === 'services' ? 'services.yaml' : activeTab === 'settings' ? 'settings.yaml' : 'widgets.yaml'}
+              Download {activeTab === 'services' ? 'services.yaml' : activeTab === 'settings' ? 'settings.yaml' : activeTab === 'widgets' ? 'widgets.yaml' : 'proxmox.yaml'}
             </button>
             
             {/* Live Update Buttons */}
@@ -3408,7 +3486,7 @@ const HomepageConfigGUI = () => {
               </div>
             </div>
           </div>
-        ) : (
+        ) : activeTab === 'widgets' ? (
           /* Information Widgets Configuration */
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             {/* Widgets Form */}
@@ -4029,7 +4107,264 @@ const HomepageConfigGUI = () => {
               </div>
             </div>
           </div>
-        )}
+        ) : activeTab === 'proxmox' ? (
+          /* Proxmox Configuration */
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            {/* Proxmox Form */}
+            <div className="space-y-6">
+              <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                <h3 className="text-lg font-medium mb-4">Proxmox Configuration</h3>
+                <div className="space-y-4">
+                  <p className="text-slate-300 text-sm mb-4">
+                    Configure Proxmox connection settings and manage VMs/containers to display on your homepage.
+                  </p>
+
+                  {/* Enable Proxmox */}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="proxmox-enabled"
+                      checked={proxmoxConfig.enabled}
+                      onChange={(e) => setProxmoxConfig({ ...proxmoxConfig, enabled: e.target.checked })}
+                      className="rounded"
+                    />
+                    <label htmlFor="proxmox-enabled" className="text-slate-300">Enable Proxmox Integration</label>
+                  </div>
+
+                  {proxmoxConfig.enabled && (
+                    <>
+                      {/* Connection Settings */}
+                      <div className="space-y-3">
+                        <label className="block text-slate-300 text-sm font-medium">Connection Settings</label>
+                        <div className="grid grid-cols-1 gap-3">
+                          <div>
+                            <label className="block text-xs text-slate-400 mb-1">Proxmox URL</label>
+                            <input
+                              type="url"
+                              value={proxmoxConfig.url}
+                              onChange={(e) => setProxmoxConfig({ ...proxmoxConfig, url: e.target.value })}
+                              placeholder="https://proxmox.example.com:8006"
+                              className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-400 mb-1">API Token ID</label>
+                            <input
+                              type="text"
+                              value={proxmoxConfig.username}
+                              onChange={(e) => setProxmoxConfig({ ...proxmoxConfig, username: e.target.value })}
+                              placeholder="user@pve!tokenid"
+                              className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-400 mb-1">API Token Secret</label>
+                            <input
+                              type="password"
+                              value={proxmoxConfig.password}
+                              onChange={(e) => setProxmoxConfig({ ...proxmoxConfig, password: e.target.value })}
+                              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                              className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Nodes */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-slate-300 text-sm font-medium">Nodes</label>
+                          <button
+                            onClick={() => {
+                              const newNode = {
+                                id: `node${Date.now()}`,
+                                name: 'new-node',
+                                enabled: true
+                              };
+                              setProxmoxConfig({ ...proxmoxConfig, nodes: [...proxmoxConfig.nodes, newNode] });
+                            }}
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                          >
+                            <Plus className="h-3 w-3" />
+                            Add Node
+                          </button>
+                        </div>
+                        {proxmoxConfig.nodes.map((node, index) => (
+                          <div key={node.id} className="flex items-center gap-3 p-3 bg-slate-700 rounded border border-slate-600">
+                            <input
+                              type="checkbox"
+                              checked={node.enabled}
+                              onChange={(e) => {
+                                const updatedNodes = [...proxmoxConfig.nodes];
+                                updatedNodes[index].enabled = e.target.checked;
+                                setProxmoxConfig({ ...proxmoxConfig, nodes: updatedNodes });
+                              }}
+                              className="rounded"
+                            />
+                            <input
+                              type="text"
+                              value={node.name}
+                              onChange={(e) => {
+                                const updatedNodes = [...proxmoxConfig.nodes];
+                                updatedNodes[index].name = e.target.value;
+                                setProxmoxConfig({ ...proxmoxConfig, nodes: updatedNodes });
+                              }}
+                              placeholder="Node name"
+                              className="flex-1 bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-sm"
+                            />
+                            <button
+                              onClick={() => {
+                                const updatedNodes = proxmoxConfig.nodes.filter((_, i) => i !== index);
+                                setProxmoxConfig({ ...proxmoxConfig, nodes: updatedNodes });
+                              }}
+                              className="p-1 text-red-400 hover:text-red-300 transition-colors"
+                              title="Remove node"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* VMs */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-slate-300 text-sm font-medium">Virtual Machines & Containers</label>
+                          <button
+                            onClick={() => {
+                              const newVM = {
+                                id: `vm${Date.now()}`,
+                                name: 'New VM',
+                                vmid: 100,
+                                node: 'pve',
+                                type: 'qemu',
+                                enabled: true
+                              };
+                              setProxmoxConfig({ ...proxmoxConfig, vms: [...proxmoxConfig.vms, newVM] });
+                            }}
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                          >
+                            <Plus className="h-3 w-3" />
+                            Add VM
+                          </button>
+                        </div>
+                        {proxmoxConfig.vms.map((vm, index) => (
+                          <div key={vm.id} className="space-y-2 p-3 bg-slate-700 rounded border border-slate-600">
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={vm.enabled}
+                                onChange={(e) => {
+                                  const updatedVMs = [...proxmoxConfig.vms];
+                                  updatedVMs[index].enabled = e.target.checked;
+                                  setProxmoxConfig({ ...proxmoxConfig, vms: updatedVMs });
+                                }}
+                                className="rounded"
+                              />
+                              <input
+                                type="text"
+                                value={vm.name}
+                                onChange={(e) => {
+                                  const updatedVMs = [...proxmoxConfig.vms];
+                                  updatedVMs[index].name = e.target.value;
+                                  setProxmoxConfig({ ...proxmoxConfig, vms: updatedVMs });
+                                }}
+                                placeholder="VM Name"
+                                className="flex-1 bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-sm"
+                              />
+                              <button
+                                onClick={() => {
+                                  const updatedVMs = proxmoxConfig.vms.filter((_, i) => i !== index);
+                                  setProxmoxConfig({ ...proxmoxConfig, vms: updatedVMs });
+                                }}
+                                className="p-1 text-red-400 hover:text-red-300 transition-colors"
+                                title="Remove VM"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div>
+                                <label className="block text-xs text-slate-400 mb-1">VM ID</label>
+                                <input
+                                  type="number"
+                                  value={vm.vmid}
+                                  onChange={(e) => {
+                                    const updatedVMs = [...proxmoxConfig.vms];
+                                    updatedVMs[index].vmid = parseInt(e.target.value) || 100;
+                                    setProxmoxConfig({ ...proxmoxConfig, vms: updatedVMs });
+                                  }}
+                                  min="100"
+                                  max="999999"
+                                  className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs text-slate-400 mb-1">Node</label>
+                                <select
+                                  value={vm.node}
+                                  onChange={(e) => {
+                                    const updatedVMs = [...proxmoxConfig.vms];
+                                    updatedVMs[index].node = e.target.value;
+                                    setProxmoxConfig({ ...proxmoxConfig, vms: updatedVMs });
+                                  }}
+                                  className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
+                                >
+                                  {proxmoxConfig.nodes.filter(n => n.enabled).map(node => (
+                                    <option key={node.id} value={node.name}>{node.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-xs text-slate-400 mb-1">Type</label>
+                                <select
+                                  value={vm.type}
+                                  onChange={(e) => {
+                                    const updatedVMs = [...proxmoxConfig.vms];
+                                    updatedVMs[index].type = e.target.value;
+                                    setProxmoxConfig({ ...proxmoxConfig, vms: updatedVMs });
+                                  }}
+                                  className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
+                                >
+                                  <option value="qemu">VM (qemu)</option>
+                                  <option value="lxc">Container (lxc)</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Proxmox Preview */}
+            <div className="space-y-6">
+              <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                <h3 className="text-lg font-medium mb-4">YAML Preview</h3>
+                <pre className="bg-slate-900 p-4 rounded text-sm text-green-400 font-mono overflow-x-auto max-h-96">
+                  <code>{generateProxmoxYAML()}</code>
+                </pre>
+              </div>
+
+              {/* Proxmox Tips */}
+              <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-800">
+                <h3 className="font-semibold text-blue-300 mb-2">Proxmox Configuration Tips</h3>
+                <div className="text-sm text-blue-200 space-y-2">
+                  <div><strong>API Token:</strong> Create an API token in Proxmox datacenter permissions</div>
+                  <div><strong>URL Format:</strong> Use https://your-proxmox-host:8006</div>
+                  <div><strong>VM Types:</strong> qemu for virtual machines, lxc for containers</div>
+                  <div><strong>Node Names:</strong> Use exact node names as shown in Proxmox cluster</div>
+                  <div className="text-xs text-blue-300 mt-3 p-2 bg-blue-800/30 rounded">
+                    <strong>Pro Tip:</strong> Enable the Proxmox integration in Homepage's settings.yaml to see real-time VM status and resource usage.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
