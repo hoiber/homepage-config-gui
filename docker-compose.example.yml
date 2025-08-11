@@ -17,7 +17,7 @@ services:
 
   # Homepage Config GUI
   homepage-config-gui:
-    image: hoiber/homepage-config-editor:latest
+    image: hoiber/homepage-config-gui:latest
     container_name: homepage-config-gui
     ports:
       - "3001:3001"

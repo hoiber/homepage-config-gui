@@ -1,12 +1,12 @@
-# Homepage Config Editor
+# Homepage Config GUI
 
 A comprehensive web-based GUI for creating, editing, and managing [Homepage](https://github.com/gethomepage/homepage) dashboard configurations with live file updates and Docker integration.
 
-![Homepage Config Editor](https://img.shields.io/badge/Homepage-Config%20Editor-blue?style=for-the-badge&logo=react)
+![Homepage Config GUI](https://img.shields.io/badge/Homepage-Config%20GUI-blue?style=for-the-badge&logo=react)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)
 ![Live Updates](https://img.shields.io/badge/Live-Updates-green?style=for-the-badge)
 
-![Docker Hub](https://img.shields.io/docker/pulls/hoiber/homepage-config-editor?style=for-the-badge&logo=docker)
+![Docker Hub](https://img.shields.io/docker/pulls/hoiber/homepage-config-gui?style=for-the-badge&logo=docker)
 ![GitHub Container Registry](https://img.shields.io/badge/GHCR-Available-green?style=for-the-badge&logo=github)
 ![Multi-Architecture](https://img.shields.io/badge/Multi--Arch-AMD64%20%7C%20ARM64%20%7C%20ARMv7-orange?style=for-the-badge)
 
@@ -80,7 +80,7 @@ services:
 
   # Homepage Config GUI
   homepage-config-gui:
-    image: hoiber/homepage-config-editor:latest
+    image: hoiber/homepage-config-gui:latest
     container_name: homepage-config-gui
     ports:
       - "3001:3001"
@@ -104,7 +104,7 @@ services:
 **Full Stack Deployment (Homepage + Config Editor):**
 ```bash
 git clone https://github.com/hoiber/homepage-config-editor.git
-cd homepage-config-editor
+cd homepage-config-gui
 docker-compose --profile full up -d --build
 ```
 
@@ -116,13 +116,13 @@ docker-compose --profile full up -d --build
 ### Option 3: Individual Docker Images
 ```bash
 # Full server with live updates
-docker run -p 3001:3001 -v ./config:/config -e ENABLE_LIVE_UPDATES=true hoiber/homepage-config-editor:latest
+docker run -p 3001:3001 -v ./config:/config -e ENABLE_LIVE_UPDATES=true hoiber/homepage-config-gui:latest
 
 # Static Nginx build (read-only)
-docker run -p 8080:80 hoiber/homepage-config-editor:static
+docker run -p 8080:80 hoiber/homepage-config-gui:static
 
 # From GitHub Container Registry
-docker run -p 3001:3001 ghcr.io/hoiber/homepage-config-editor:latest
+docker run -p 3001:3001 ghcr.io/hoiber/homepage-config-gui:latest
 ```
 
 ### Option 4: Standalone Config Editor
@@ -314,7 +314,7 @@ GET  /api/config/{type}/backups    # List backup files
 ```bash
 # Clone repository
 git clone https://github.com/hoiber/homepage-config-editor.git
-cd homepage-config-editor
+cd homepage-config-gui
 
 # Install dependencies
 npm install
@@ -360,7 +360,7 @@ npm test -- --coverage
 ## 📄 File Structure
 
 ```
-homepage-config-editor/
+homepage-config-gui/
 ├── src/                         # React source code
 │   ├── App.js                  # Main application component
 │   ├── index.js                # React entry point
@@ -426,18 +426,18 @@ docker logs homepage
 
 ## 📊 Project Stats
 
-![Lines of Code](https://img.shields.io/tokei/lines/github/hoiber/homepage-config-editor)
-![Repository Size](https://img.shields.io/github/repo-size/hoiber/homepage-config-editor)
-![Last Commit](https://img.shields.io/github/last-commit/hoiber/homepage-config-editor)
-![Issues](https://img.shields.io/github/issues/hoiber/homepage-config-editor)
-![License](https://img.shields.io/github/license/hoiber/homepage-config-editor)
+![Lines of Code](https://img.shields.io/tokei/lines/github/hoiber/homepage-config-gui)
+![Repository Size](https://img.shields.io/github/repo-size/hoiber/homepage-config-gui)
+![Last Commit](https://img.shields.io/github/last-commit/hoiber/homepage-config-gui)
+![Issues](https://img.shields.io/github/issues/hoiber/homepage-config-gui)
+![License](https://img.shields.io/github/license/hoiber/homepage-config-gui)
 
 ---
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/hoiber/homepage-config-editor/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/hoiber/homepage-config-editor/discussions)
+- **Issues**: [GitHub Issues](https://github.com/hoiber/homepage-config-gui/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/hoiber/homepage-config-gui/discussions)
 - **Homepage Community**: [Homepage Discord](https://discord.gg/homepage)
 
 ---
@@ -446,6 +446,6 @@ docker logs homepage
 
 **Made with ❤️ for the Homepage community**
 
-[⭐ Star this repo](https://github.com/hoiber/homepage-config-editor) | [🐛 Report Bug](https://github.com/hoiber/homepage-config-editor/issues) | [💡 Request Feature](https://github.com/hoiber/homepage-config-editor/issues)
+[⭐ Star this repo](https://github.com/hoiber/homepage-config-editor) | [🐛 Report Bug](https://github.com/hoiber/homepage-config-gui/issues) | [💡 Request Feature](https://github.com/hoiber/homepage-config-gui/issues)
 
 </div>
