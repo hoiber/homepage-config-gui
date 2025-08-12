@@ -1,24 +1,27 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Download, Trash2, Copy, Home, Settings, Upload, ChevronUp, ChevronDown, ChevronRight, List, Cog, Info, CloudUpload, CloudDownload } from 'lucide-react';
+import yaml from 'js-yaml';
 
-const HomepageConfigGUI = () => {
-  const [activeTab, setActiveTab] = useState('services');
-  const [selectedQuickAdd, setSelectedQuickAdd] = useState({});
-  const [importError, setImportError] = useState('');
-  const [importSuccess, setImportSuccess] = useState('');
-  
-  // Live update functionality
-  const [liveUpdateConfig, setLiveUpdateConfig] = useState({
-    enabled: false,
-    configPath: '',
-    status: 'unknown'
-  });
-  // eslint-disable-next-line no-unused-vars
-  const [backupFiles, setBackupFiles] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const commonServices = {
+// Generate secure random IDs
+const generateId = (prefix = '') => {
+  const uuid = crypto.randomUUID?.() || 
+    `${Date.now()}-${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`;
+  return prefix ? `${prefix}_${uuid}` : uuid;
+};
+
+// Helper function to swap hostname while preserving protocol, port, and path
+const swapHost = (originalUrl, newHost) => {
+  try {
+    const u = new URL(originalUrl);
+    u.host = newHost;
+    return u.toString();
+  } catch {
+    return originalUrl;
+  }
+};
+
+const commonServices = {
     // Media Servers & Streaming
     plex: {
       name: 'Plex',
@@ -974,6 +977,22 @@ const HomepageConfigGUI = () => {
     }
   };
 
+const HomepageConfigGUI = () => {
+  const [activeTab, setActiveTab] = useState('services');
+  const [selectedQuickAdd, setSelectedQuickAdd] = useState({});
+  const [importError, setImportError] = useState('');
+  const [importSuccess, setImportSuccess] = useState('');
+  
+  // Live update functionality
+  const [liveUpdateConfig, setLiveUpdateConfig] = useState({
+    enabled: false,
+    configPath: '',
+    status: 'unknown'
+  });
+  // eslint-disable-next-line no-unused-vars
+  const [backupFiles, setBackupFiles] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   const [config, setConfig] = useState({
     groups: [
       {
@@ -1057,7 +1076,15 @@ const HomepageConfigGUI = () => {
   const updateServiceUrl = (service, newName) => {
     const cleanName = newName.toLowerCase().replace(/[^a-z0-9]/g, '');
     const domain = uiPreferences.globalDomain || 'local';
-    return `http://${cleanName}.${domain}`;
+    const newHost = `${cleanName}.${domain}`;
+    
+    // If service has an existing href, preserve protocol, port, and path
+    if (service && service.href) {
+      return swapHost(service.href, newHost);
+    }
+    
+    // Default fallback for new services
+    return `http://${newHost}`;
   };
 
   // Function to update all service URLs based on current domain
@@ -1068,13 +1095,13 @@ const HomepageConfigGUI = () => {
         ...group,
         services: group.services.map(service => ({
           ...service,
-          href: updateServiceUrl(null, service.name)
+          href: updateServiceUrl(service, service.name)
         })),
         subgroups: (group.subgroups || []).map(subgroup => ({
           ...subgroup,
           services: subgroup.services.map(service => ({
             ...service,
-            href: updateServiceUrl(null, service.name)
+            href: updateServiceUrl(service, service.name)
           }))
         }))
       }))
@@ -1290,7 +1317,7 @@ const HomepageConfigGUI = () => {
 
   const addGroup = () => {
     const newGroup = {
-      id: `group${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      id: generateId('group'),
       name: 'New Group',
       services: [],
       subgroups: []
@@ -1304,21 +1331,29 @@ const HomepageConfigGUI = () => {
 
   const addService = (groupId, quickService = null) => {
     const newService = quickService ? {
-      id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      id: generateId('service'),
       ...quickService,
       href: quickService.href.includes('localhost') 
-        ? quickService.href.replace('http://localhost', generateServiceUrl(quickService.name, '').replace(/:[^:]*$/, ''))
+        ? (() => {
+            const domain = uiPreferences.globalDomain || 'local';
+            const cleanName = quickService.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return swapHost(quickService.href, `${cleanName}.${domain}`);
+          })()
         : quickService.href,
       widget: quickService.widget && quickService.widget.url && quickService.widget.url.includes('localhost')
         ? {
             ...quickService.widget,
-            url: quickService.widget.url.replace('http://localhost', generateServiceUrl(quickService.name, '').replace(/:[^:]*$/, ''))
+            url: (() => {
+              const domain = uiPreferences.globalDomain || 'local';
+              const cleanName = quickService.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+              return swapHost(quickService.widget.url, `${cleanName}.${domain}`);
+            })()
           }
         : quickService.widget,
       // Auto-enable Proxmox configuration for predefined Proxmox services
       enableProxmox: quickService.name.toLowerCase() === 'proxmox' ? true : quickService.enableProxmox
     } : {
-      id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      id: generateId('service'),
       name: 'New Service',
       href: updateServiceUrl(null, 'newservice'),
       description: '',
@@ -1365,7 +1400,7 @@ const HomepageConfigGUI = () => {
 
   const addSubgroup = (parentGroupId) => {
     const newSubgroup = {
-      id: `subgroup${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      id: generateId('subgroup'),
       name: 'New Subgroup',
       services: []
     };
@@ -1413,21 +1448,29 @@ const HomepageConfigGUI = () => {
 
   const addServiceToSubgroup = (parentGroupId, subgroupId, quickService = null) => {
     const newService = quickService ? {
-      id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      id: generateId('service'),
       ...quickService,
       href: quickService.href.includes('localhost') 
-        ? quickService.href.replace('http://localhost', generateServiceUrl(quickService.name, '').replace(/:[^:]*$/, ''))
+        ? (() => {
+            const domain = uiPreferences.globalDomain || 'local';
+            const cleanName = quickService.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return swapHost(quickService.href, `${cleanName}.${domain}`);
+          })()
         : quickService.href,
       widget: quickService.widget && quickService.widget.url && quickService.widget.url.includes('localhost')
         ? {
             ...quickService.widget,
-            url: quickService.widget.url.replace('http://localhost', generateServiceUrl(quickService.name, '').replace(/:[^:]*$/, ''))
+            url: (() => {
+              const domain = uiPreferences.globalDomain || 'local';
+              const cleanName = quickService.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+              return swapHost(quickService.widget.url, `${cleanName}.${domain}`);
+            })()
           }
         : quickService.widget,
       // Auto-enable Proxmox configuration for predefined Proxmox services
       enableProxmox: quickService.name.toLowerCase() === 'proxmox' ? true : quickService.enableProxmox
     } : {
-      id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      id: generateId('service'),
       name: 'New Service',
       href: updateServiceUrl(null, 'newservice'),
       description: '',
@@ -1501,212 +1544,116 @@ const HomepageConfigGUI = () => {
   };
 
   const parseYAML = (yamlContent) => {
-    // Clean up and normalize the YAML content
-    const normalizeYAML = (content) => {
-      return content
-        // Remove BOM and normalize line endings
-        .replace(/^\uFEFF/, '')
-        .replace(/\r\n/g, '\n')
-        .replace(/\r/g, '\n')
-        // Fix common spacing issues
-        .replace(/^\s+$/gm, '') // Remove lines with only whitespace
-        .replace(/\t/g, '  ') // Convert tabs to spaces
-        // Fix missing colons after group/service names
-        .replace(/^(\s*-\s+)([^:\n]+)(\s*)$/gm, '$1$2:$3')
-        // Normalize quoted values
-        .replace(/:\s*"([^"]*)"$/gm, ': $1')
-        .replace(/:\s*'([^']*)'$/gm, ': $1')
-        // Fix common Homepage config variations
-        .replace(/\bhref\s*:/gi, 'href:')
-        .replace(/\burl\s*:/gi, 'url:')
-        .replace(/\bdescription\s*:/gi, 'description:')
-        .replace(/\bicon\s*:/gi, 'icon:')
-        .replace(/\bwidget\s*:/gi, 'widget:')
-        .replace(/\btype\s*:/gi, 'type:')
-        .replace(/\bkey\s*:/gi, 'key:')
-        .replace(/\bping\s*:/gi, 'ping:')
-        .replace(/\binterval\s*:/gi, 'interval:')
-        .replace(/\benabled\s*:/gi, 'enabled:')
-        .replace(/\bpublic\s*:/gi, 'public:')
-        // Handle different service URL formats
-        .replace(/\bserver\s*:/gi, 'url:')
-        .replace(/\baddress\s*:/gi, 'url:')
-        .replace(/\bhost\s*:/gi, 'url:');
-    };
-
-    // Parse value with flexible type handling
-    const parseValue = (value) => {
-      if (value === undefined || value === null) return '';
-      
-      const trimmed = String(value).trim();
-      
-      // Handle boolean values
-      if (/^(true|false|yes|no|on|off|1|0)$/i.test(trimmed)) {
-        return /^(true|yes|on|1)$/i.test(trimmed);
-      }
-      
-      // Handle numeric values
-      if (/^\d+$/.test(trimmed)) {
-        const num = parseInt(trimmed, 10);
-        return !isNaN(num) ? num : trimmed;
-      }
-      
-      // Remove quotes
-      return trimmed.replace(/^["']|["']$/g, '');
-    };
-
-    // Generate unique IDs
-    const generateId = (prefix) => `${prefix}${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-
     try {
-      const normalizedContent = normalizeYAML(yamlContent);
-      const lines = normalizedContent.split('\n');
-      const groups = [];
-      let currentGroup = null;
-      let currentSubgroup = null;
-      let currentService = null;
-      let currentContext = null; // 'widget', 'ping', etc.
-      let indentStack = [];
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const trimmed = line.trim();
-        
-        if (!trimmed || trimmed.startsWith('#')) continue;
-
-        // Calculate indentation level
-        const indent = line.match(/^(\s*)/)[1].length;
-        
-        // Update indent stack
-        while (indentStack.length > 0 && indentStack[indentStack.length - 1].indent >= indent) {
-          const popped = indentStack.pop();
-          if (popped.type === 'widget' || popped.type === 'ping') {
-            currentContext = null;
-          }
-        }
-
-        // Group level (no indentation or minimal indentation)
-        if ((indent === 0 || (indent <= 2 && line.match(/^[\s]*-\s+/))) && trimmed.includes(':') && !trimmed.match(/^\s*(href|url|description|icon|widget|ping|type|key|interval|enabled|public):/i)) {
-          const groupName = trimmed.replace(/^-\s*/, '').replace(/:.*$/, '').trim();
-          if (groupName) {
-            currentGroup = {
-              id: generateId('group'),
-              name: groupName,
-              services: [],
-              subgroups: []
-            };
-            groups.push(currentGroup);
-            currentSubgroup = null;
-            currentService = null;
-            currentContext = null;
-            indentStack = [{ type: 'group', indent, name: groupName }];
-          }
-        }
-        // Service level (indented under group)
-        else if (indent >= 2 && trimmed.startsWith('- ') && trimmed.includes(':') && currentGroup && !trimmed.match(/^\s*(href|url|description|icon|widget|ping|type|key|interval|enabled|public):/i)) {
-          const serviceName = trimmed.replace(/^-\s*/, '').replace(/:.*$/, '').trim();
-          if (serviceName) {
-            // Check if this should be a subgroup (deeper indentation suggests subgroup)
-            const shouldBeSubgroup = indent > 4 && currentService === null;
-            
-            if (shouldBeSubgroup) {
-              // Create subgroup
-              currentSubgroup = {
-                id: generateId('subgroup'),
-                name: serviceName,
-                services: []
-              };
-              currentGroup.subgroups.push(currentSubgroup);
-              currentService = null;
-              indentStack.push({ type: 'subgroup', indent, name: serviceName });
-            } else {
-              // Create service
-              currentService = {
-                id: generateId('service'),
-                name: serviceName,
-                href: '',
-                url: '',
-                description: '',
-                icon: '',
-                ping: null,
-                widget: null
-              };
-              
-              if (currentSubgroup) {
-                currentSubgroup.services.push(currentService);
-              } else {
-                currentGroup.services.push(currentService);
-              }
-              
-              currentContext = null;
-              indentStack.push({ type: 'service', indent, name: serviceName });
-            }
-          }
-        }
-        // Property level
-        else if (currentService && trimmed.includes(':')) {
-          const colonIndex = trimmed.indexOf(':');
-          const key = trimmed.substring(0, colonIndex).trim().toLowerCase();
-          const value = parseValue(trimmed.substring(colonIndex + 1).trim());
-
-          if (key === 'widget' && !value) {
-            currentService.widget = { type: '', url: '', key: '' };
-            currentContext = 'widget';
-            indentStack.push({ type: 'widget', indent });
-          } else if (key === 'ping' && !value) {
-            currentService.ping = { enabled: false, url: '', interval: 30, public: false };
-            currentContext = 'ping';
-            indentStack.push({ type: 'ping', indent });
-          } else if (currentContext === 'widget' && currentService.widget) {
-            if (key === 'type') currentService.widget.type = value;
-            else if (key === 'url' || key === 'server' || key === 'address' || key === 'host') currentService.widget.url = value;
-            else if (key === 'key' || key === 'apikey' || key === 'api_key' || key === 'token') currentService.widget.key = value;
-            else if (key === 'username' || key === 'user') currentService.widget.username = value;
-            else if (key === 'password' || key === 'pass') currentService.widget.password = value;
-            else if (key === 'datastore') currentService.widget.datastore = value;
-          } else if (currentContext === 'ping' && currentService.ping) {
-            if (key === 'url' || key === 'host' || key === 'address') currentService.ping.url = value;
-            else if (key === 'interval') currentService.ping.interval = typeof value === 'number' ? value : 30;
-            else if (key === 'enabled') currentService.ping.enabled = Boolean(value);
-            else if (key === 'public') currentService.ping.public = Boolean(value);
-          } else {
-            // Direct service properties
-            if (key === 'href' || key === 'url') currentService.href = value;
-            else if (key === 'description') currentService.description = value;
-            else if (key === 'icon') currentService.icon = value;
-            else if (key === 'proxmoxNode') currentService.proxmoxNode = value;
-            else if (key === 'proxmoxVMID') currentService.proxmoxVMID = typeof value === 'number' ? value : parseInt(value) || 101;
-            else if (key === 'proxmoxType') currentService.proxmoxType = value;
-          }
-        }
+      // Use js-yaml to parse the content
+      const parsed = yaml.load(yamlContent, { 
+        schema: yaml.FAILSAFE_SCHEMA,
+        onWarning: (warning) => console.warn('YAML warning:', warning)
+      });
+      
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Invalid YAML structure');
       }
 
-      // Clean up services - ensure href is set from url if available
-      groups.forEach(group => {
-        [...group.services, ...(group.subgroups?.flatMap(sg => sg.services) || [])].forEach(service => {
-          if (!service.href && service.url) {
-            service.href = service.url;
-          }
-          // Remove empty ping objects
-          if (service.ping && !service.ping.enabled && !service.ping.url) {
-            service.ping = null;
-          }
-          // Remove empty widget objects
-          if (service.widget && !service.widget.type && !service.widget.url && !service.widget.key) {
-            service.widget = null;
-          }
-        });
+      // Convert the parsed YAML to our internal format
+      const groups = [];
+      
+      // Handle direct services structure (services: [...])
+      if (parsed.services && Array.isArray(parsed.services)) {
+        return convertServicesFormat(parsed.services);
+      }
+      
+      // Handle grouped structure where each top-level key is a group
+      Object.entries(parsed).forEach(([groupName, groupData]) => {
+        if (groupData && Array.isArray(groupData)) {
+          const group = {
+            id: generateId('group'),
+            name: groupName,
+            services: [],
+            subgroups: []
+          };
+          
+          groupData.forEach(item => {
+            if (item && typeof item === 'object') {
+              const serviceName = Object.keys(item)[0];
+              const serviceData = item[serviceName];
+              
+              if (serviceData && typeof serviceData === 'object') {
+                const service = convertServiceData(serviceName, serviceData);
+                group.services.push(service);
+              }
+            }
+          });
+          
+          groups.push(group);
+        }
       });
-
+      
       return groups;
     } catch (error) {
-      console.warn('Advanced YAML parsing failed, trying simple fallback:', error);
-      return parseYAMLSimple(yamlContent);
+      console.warn('js-yaml parsing failed, trying custom fallback:', error);
+      return parseYAMLFallback(yamlContent);
     }
   };
 
-  // Fallback simple parser
-  const parseYAMLSimple = (yamlContent) => {
+  // Convert services array format to our internal structure
+  const convertServicesFormat = (services) => {
+    const groups = [];
+    let currentGroup = null;
+    
+    services.forEach(item => {
+      if (item && typeof item === 'object') {
+        const groupName = Object.keys(item)[0];
+        const groupData = item[groupName];
+        
+        if (Array.isArray(groupData)) {
+          currentGroup = {
+            id: generateId('group'),
+            name: groupName,
+            services: [],
+            subgroups: []
+          };
+          
+          groupData.forEach(serviceItem => {
+            if (serviceItem && typeof serviceItem === 'object') {
+              const serviceName = Object.keys(serviceItem)[0];
+              const serviceData = serviceItem[serviceName];
+              const service = convertServiceData(serviceName, serviceData);
+              currentGroup.services.push(service);
+            }
+          });
+          
+          groups.push(currentGroup);
+        }
+      }
+    });
+    
+    return groups;
+  };
+
+  // Convert individual service data to our format
+  const convertServiceData = (name, data) => {
+    const service = {
+      id: generateId('service'),
+      name: name,
+      href: data.href || data.url || '',
+      description: data.description || '',
+      icon: data.icon || '',
+      ping: data.ping || null,
+      widget: data.widget || null
+    };
+    
+    // Handle proxmox-specific fields
+    if (data.proxmoxNode) service.proxmoxNode = data.proxmoxNode;
+    if (data.proxmoxVMID) service.proxmoxVMID = data.proxmoxVMID;
+    if (data.proxmoxType) service.proxmoxType = data.proxmoxType;
+    if (data.enableProxmox) service.enableProxmox = data.enableProxmox;
+    
+    return service;
+  };
+
+  // Fallback parser for malformed YAML
+  const parseYAMLFallback = (yamlContent) => {
     const lines = yamlContent.split('\n');
     const groups = [];
     let currentGroup = null;
@@ -1721,7 +1668,7 @@ const HomepageConfigGUI = () => {
         const groupName = trimmed.replace(/^-\s*/, '').replace(':', '').trim();
         if (groupName) {
           currentGroup = {
-            id: `group${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+            id: generateId('group'),
             name: groupName,
             services: [],
             subgroups: []
@@ -1733,7 +1680,7 @@ const HomepageConfigGUI = () => {
         const serviceName = line.replace(/^\s*-\s*/, '').replace(':', '').trim();
         if (serviceName) {
           currentService = {
-            id: `service${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+            id: generateId('service'),
             name: serviceName,
             href: '',
             description: '',
@@ -4321,7 +4268,7 @@ const HomepageConfigGUI = () => {
                   <button
                     onClick={() => {
                       const newWidget = {
-                        id: `widget${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+                        id: generateId('widget'),
                         type: 'datetime',
                         enabled: true,
                         options: {
