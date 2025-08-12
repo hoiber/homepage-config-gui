@@ -1065,12 +1065,6 @@ const HomepageConfigGUI = () => {
   }, [uiPreferences]);
 
   // Helper to generate service URL with domain pattern
-  const generateServiceUrl = (serviceName, port, protocol = 'http') => {
-    const domain = uiPreferences.globalDomain || 'local';
-    const cleanName = serviceName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const baseUrl = `${protocol}://${cleanName}.${domain}`;
-    return port ? `${baseUrl}:${port}` : baseUrl;
-  };
 
   // Helper to update service URL based on name change
   const updateServiceUrl = (service, newName) => {
