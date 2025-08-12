@@ -1895,12 +1895,22 @@ const HomepageConfigGUI = () => {
       if (service.widget && service.widget.type) {
         serviceYaml += `${indent}    widget:\n`;
         serviceYaml += `${indent}      type: ${service.widget.type}\n`;
-        if (service.widget.url) serviceYaml += `${indent}      url: ${service.widget.url}\n`;
-        if (service.widget.key) serviceYaml += `${indent}      key: ${service.widget.key}\n`;
-        // Proxmox Backup Server specific fields
-        if (service.widget.username) serviceYaml += `${indent}      username: ${service.widget.username}\n`;
-        if (service.widget.password) serviceYaml += `${indent}      password: ${service.widget.password}\n`;
-        if (service.widget.datastore) serviceYaml += `${indent}      datastore: ${service.widget.datastore}\n`;
+        
+        // Get field definitions for this widget type
+        const fieldDef = widgetFieldDefinitions[service.widget.type] || widgetFieldDefinitions.default;
+        
+        // Add all configured fields
+        fieldDef.fields.forEach(field => {
+          const value = service.widget[field.key];
+          if (value !== undefined && value !== null && value !== '') {
+            // Handle boolean fields
+            if (field.type === 'boolean') {
+              serviceYaml += `${indent}      ${field.key}: ${value === true || value === 'true'}\n`;
+            } else {
+              serviceYaml += `${indent}      ${field.key}: ${value}\n`;
+            }
+          }
+        });
       }
       
       return serviceYaml;
@@ -2156,66 +2166,286 @@ const HomepageConfigGUI = () => {
     }
   };
 
-  const commonWidgetTypes = [
-    // Core Media & Arr Stack
-    'plex', 'jellyfin', 'emby', 'tautulli', 'sonarr', 'radarr', 'lidarr', 'readarr', 
-    'prowlarr', 'bazarr', 'overseerr', 'jellyseerr', 'ombi',
-    
-    // Download Clients
-    'qbittorrent', 'transmission', 'deluge', 'sabnzbd', 'nzbget', 'rutorrent', 
-    'flood', 'jdownloader', 'pyload',
-    
-    // System & Infrastructure
-    'portainer', 'traefik', 'nginx', 'docker', 'watchtower', 'yacht',
-    
-    // Monitoring & Health
-    'uptime-kuma', 'uptimerobot', 'grafana', 'prometheus', 'netdata', 'glances',
-    'scrutiny', 'healthchecks', 'gatus', 'beszel', 'checkmk',
-    
-    // Networking & Security
-    'adguard', 'pihole', 'cloudflared', 'tailscale', 'headscale', 'gluetun',
-    'unifi', 'opnsense', 'pfsense', 'authentik', 'vaultwarden', 'crowdsec',
-    
-    // Home Automation
-    'homeassistant', 'esphome', 'homebridge', 'nodered', 'zigbee2mqtt', 'evcc',
-    
-    // Media Processing & Management
-    'tdarr', 'unmanic', 'fileflows', 'audiobookshelf', 'kavita', 'komga', 
-    'tubearchivist', 'calibre-web', 'photoprism', 'immich',
-    
-    // Storage & NAS
-    'truenas', 'freenas', 'openmediavault', 'proxmox', 'proxmoxbackupserver', 'diskstation', 'qnap', 'nextcloud',
-    'filebrowser', 'syncthing', 'duplicati', 'kopia', 'urbackup',
-    
-    // Development & Git
-    'gitea', 'gitlab', 'github', 'jenkins', 'portainer',
-    
-    // Communication & Social
-    'gotify', 'mastodon', 'mattermost', 'rocketchat', 'matrix', 'element',
-    
-    // Finance & Personal
-    'firefly', 'ghostfolio', 'grocy', 'paperlessngx', 'mealie', 'tandoor',
-    'vikunja', 'linkwarden', 'wallabag', 'shiori',
-    
-    // RSS & Reading
-    'miniflux', 'freshrss', 'bookstack', 'outline', 'wikijs', 'trilium',
-    
-    // 3D Printing & IoT
-    'moonraker', 'octoprint', 'frigate', 'motioneye',
-    
-    // Gaming & Entertainment
-    'minecraft', 'pterodactyl', 'steam',
-    
-    // Mail & Web Services
-    'mailcow', 'roundcube', 'changedetection', 'upsnap', 'speedtest',
-    
-    // Databases
-    'postgres', 'mysql', 'redis', 'mongodb', 'influxdb',
-    
-    // Additional Services
-    'autobrr', 'jackett', 'flaresolverr', 'code-server', 'smokeping', 'ntopng',
-    'zabbix', 'joplin', 'custom'
-  ];
+  // Widget field definitions for Homepage service widgets
+const widgetFieldDefinitions = {
+  // Media Servers
+  plex: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://plex.server:32400' },
+      { key: 'key', label: 'X-Plex-Token', required: true, placeholder: 'your-plex-token', type: 'password' }
+    ]
+  },
+  jellyfin: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://jellyfin.server:8096' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+  emby: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://emby.server:8096' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+  tautulli: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://tautulli.server:8181' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+
+  // *arr Services  
+  sonarr: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://sonarr.server:8989' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' },
+      { key: 'enableQueue', label: 'Enable Queue', type: 'boolean', placeholder: 'false' }
+    ]
+  },
+  radarr: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://radarr.server:7878' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' },
+      { key: 'enableQueue', label: 'Enable Queue', type: 'boolean', placeholder: 'false' }
+    ]
+  },
+  lidarr: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://lidarr.server:8686' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' },
+      { key: 'enableQueue', label: 'Enable Queue', type: 'boolean', placeholder: 'false' }
+    ]
+  },
+  readarr: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://readarr.server:8787' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' },
+      { key: 'enableQueue', label: 'Enable Queue', type: 'boolean', placeholder: 'false' }
+    ]
+  },
+  prowlarr: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://prowlarr.server:9696' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+  bazarr: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://bazarr.server:6767' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+  
+  // Download Clients
+  qbittorrent: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://qbittorrent.server:8080' },
+      { key: 'username', label: 'Username', required: true, placeholder: 'admin' },
+      { key: 'password', label: 'Password', required: true, placeholder: 'adminpass', type: 'password' },
+      { key: 'enableLeechProgress', label: 'Enable Leech Progress', type: 'boolean', placeholder: 'false' }
+    ]
+  },
+  transmission: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://transmission.server:9091' },
+      { key: 'username', label: 'Username (if required)', placeholder: 'user' },
+      { key: 'password', label: 'Password (if required)', placeholder: 'pass', type: 'password' }
+    ]
+  },
+  deluge: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://deluge.server:8112' },
+      { key: 'password', label: 'Web UI Password', required: true, placeholder: 'deluge', type: 'password' }
+    ]
+  },
+  sabnzbd: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://sabnzbd.server:8080' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+  nzbget: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://nzbget.server:6789' },
+      { key: 'username', label: 'Username', required: true, placeholder: 'nzbget' },
+      { key: 'password', label: 'Password', required: true, placeholder: 'tegbzn6789', type: 'password' }
+    ]
+  },
+
+  // Request Management
+  overseerr: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://overseerr.server:5055' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+  jellyseerr: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://jellyseerr.server:5055' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+  ombi: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://ombi.server:3579' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+
+  // Infrastructure
+  proxmox: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'https://proxmox.server:8006' },
+      { key: 'username', label: 'API Token ID', required: true, placeholder: 'user@pam!token' },
+      { key: 'password', label: 'API Token Secret', required: true, placeholder: 'token-secret', type: 'password' },
+      { key: 'node', label: 'Node Name', placeholder: 'pve (optional for cluster view)' }
+    ]
+  },
+  proxmoxbackupserver: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'https://pbs.server:8007' },
+      { key: 'username', label: 'API Token ID', required: true, placeholder: 'user@pbs!token' },
+      { key: 'password', label: 'API Token Secret', required: true, placeholder: 'token-secret', type: 'password' },
+      { key: 'datastore', label: 'Datastore', placeholder: 'datastore-name (optional)' }
+    ]
+  },
+  portainer: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://portainer.server:9000' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+  truenas: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'https://truenas.server' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+
+  // Monitoring
+  'uptime-kuma': {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://uptime-kuma.server:3001' },
+      { key: 'slug', label: 'Status Page Slug', required: true, placeholder: 'your-status-page-slug' }
+    ]
+  },
+  grafana: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://grafana.server:3000' },
+      { key: 'username', label: 'Username', required: true, placeholder: 'admin' },
+      { key: 'password', label: 'Password', required: true, placeholder: 'admin', type: 'password' }
+    ]
+  },
+  prometheus: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://prometheus.server:9090' }
+    ]
+  },
+  netdata: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://netdata.server:19999' }
+    ]
+  },
+
+  // Network & Security  
+  adguard: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://adguard.server:3000' },
+      { key: 'username', label: 'Username', required: true, placeholder: 'admin' },
+      { key: 'password', label: 'Password', required: true, placeholder: 'password', type: 'password' }
+    ]
+  },
+  pihole: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://pihole.server' },
+      { key: 'key', label: 'API Token', placeholder: 'your-api-token (optional)', type: 'password' }
+    ]
+  },
+  unifi: {
+    fields: [
+      { key: 'url', label: 'Controller URL', required: true, placeholder: 'https://unifi.server:8443' },
+      { key: 'username', label: 'Username', required: true, placeholder: 'admin' },
+      { key: 'password', label: 'Password', required: true, placeholder: 'password', type: 'password' }
+    ]
+  },
+  opnsense: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'https://opnsense.server' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' },
+      { key: 'secret', label: 'API Secret', required: true, placeholder: 'your-api-secret', type: 'password' }
+    ]
+  },
+  pfsense: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'https://pfsense.server' },
+      { key: 'username', label: 'Username', required: true, placeholder: 'admin' },
+      { key: 'password', label: 'Password', required: true, placeholder: 'password', type: 'password' }
+    ]
+  },
+  authentik: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'https://authentik.server' },
+      { key: 'key', label: 'API Token', required: true, placeholder: 'your-api-token', type: 'password' }
+    ]
+  },
+
+  // Home Automation
+  homeassistant: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://homeassistant.server:8123' },
+      { key: 'key', label: 'Long-Lived Token', required: true, placeholder: 'your-token', type: 'password' }
+    ]
+  },
+
+  // Gaming
+  minecraft: {
+    fields: [
+      { key: 'url', label: 'Server Address', required: true, placeholder: 'minecraft.server:25565' }
+    ]
+  },
+  pterodactyl: {
+    fields: [
+      { key: 'url', label: 'Panel URL', required: true, placeholder: 'https://pterodactyl.server' },
+      { key: 'key', label: 'API Key', required: true, placeholder: 'your-api-key', type: 'password' }
+    ]
+  },
+
+  // Default fallback for unlisted widgets
+  default: {
+    fields: [
+      { key: 'url', label: 'Server URL', required: true, placeholder: 'http://server:port' },
+      { key: 'key', label: 'API Key/Token', placeholder: 'your-api-key', type: 'password' },
+      { key: 'username', label: 'Username', placeholder: 'username' },
+      { key: 'password', label: 'Password', placeholder: 'password', type: 'password' }
+    ]
+  }
+};
+
+const commonWidgetTypes = Object.keys(widgetFieldDefinitions)
+  .filter(type => type !== 'default')
+  .sort();
+
+// Validate widget configuration
+const validateWidget = (widget) => {
+  if (!widget || !widget.type) return { isValid: true, errors: [] };
+  
+  const fieldDef = widgetFieldDefinitions[widget.type] || widgetFieldDefinitions.default;
+  const errors = [];
+  
+  fieldDef.fields.forEach(field => {
+    if (field.required) {
+      const value = widget[field.key];
+      if (!value || value === '') {
+        errors.push(`${field.label} is required`);
+      }
+    }
+  });
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
 
   return (
     <div className="min-h-screen bg-slate-900 text-white p-6">
@@ -2685,45 +2915,88 @@ const HomepageConfigGUI = () => {
                       {/* Widget Configuration */}
                       <div className="mt-4 pt-3 border-t border-slate-600">
                         <label className="block text-slate-300 mb-2 text-sm">Widget (Optional)</label>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                        
+                        {/* Widget Type Selector */}
+                        <div className="mb-3">
                           <select
                             value={service.widget?.type || ''}
                             onChange={(e) => {
-                              const newWidget = e.target.value ? { type: e.target.value, url: '', key: '' } : null;
-                              updateService(service.id, { widget: newWidget });
+                              if (e.target.value) {
+                                const fieldDef = widgetFieldDefinitions[e.target.value] || widgetFieldDefinitions.default;
+                                const newWidget = { type: e.target.value };
+                                // Initialize all fields with empty values
+                                fieldDef.fields.forEach(field => {
+                                  newWidget[field.key] = field.type === 'boolean' ? false : '';
+                                });
+                                updateService(service.id, { widget: newWidget });
+                              } else {
+                                updateService(service.id, { widget: null });
+                              }
                             }}
-                            className="bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
+                            className="w-full bg-slate-600 text-white px-3 py-2 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
                           >
-                            <option value="">No widget</option>
-                            {commonWidgetTypes
-                              .sort((a, b) => a.localeCompare(b))
-                              .map(type => (
-                                <option key={type} value={type}>{type}</option>
-                              ))}
+                            <option value="">Select widget type...</option>
+                            {commonWidgetTypes.map(type => (
+                              <option key={type} value={type}>{type}</option>
+                            ))}
                           </select>
-                          {service.widget && (
-                            <>
-                              <input
-                                type="text"
-                                value={service.widget.url || ''}
-                                onChange={(e) => updateService(service.id, { 
-                                  widget: { ...service.widget, url: e.target.value }
-                                })}
-                                placeholder="API URL"
-                                className="bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
-                              />
-                              <input
-                                type="text"
-                                value={service.widget.key || ''}
-                                onChange={(e) => updateService(service.id, { 
-                                  widget: { ...service.widget, key: e.target.value }
-                                })}
-                                placeholder="API Key"
-                                className="bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
-                              />
-                            </>
-                          )}
                         </div>
+                        
+                        {/* Dynamic Widget Fields */}
+                        {service.widget && service.widget.type && (
+                          <div className="space-y-3">
+                            {(widgetFieldDefinitions[service.widget.type] || widgetFieldDefinitions.default).fields.map(field => (
+                              <div key={field.key}>
+                                <label className="block text-xs text-slate-400 mb-1">
+                                  {field.label}
+                                  {field.required && <span className="text-red-400 ml-1">*</span>}
+                                </label>
+                                {field.type === 'boolean' ? (
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={service.widget[field.key] === true || service.widget[field.key] === 'true'}
+                                      onChange={(e) => updateService(service.id, { 
+                                        widget: { ...service.widget, [field.key]: e.target.checked }
+                                      })}
+                                      className="w-4 h-4 text-blue-600 bg-slate-600 border-slate-500 rounded focus:ring-blue-500 focus:ring-2"
+                                    />
+                                    <span className="ml-2 text-xs text-slate-400">{field.placeholder || 'Enable this option'}</span>
+                                  </div>
+                                ) : (
+                                  <input
+                                    type={field.type === 'password' ? 'password' : 'text'}
+                                    value={service.widget[field.key] || ''}
+                                    onChange={(e) => updateService(service.id, { 
+                                      widget: { ...service.widget, [field.key]: e.target.value }
+                                    })}
+                                    placeholder={field.placeholder}
+                                    className={`w-full bg-slate-600 text-white px-2 py-1 rounded border transition-all outline-none ${
+                                      field.required && (!service.widget[field.key] || service.widget[field.key] === '')
+                                        ? 'border-red-500 focus:border-red-400 focus:ring-2 focus:ring-red-400/20'
+                                        : 'border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20'
+                                    }`}
+                                  />
+                                )}
+                              </div>
+                            ))}
+                            
+                            {/* Validation Errors */}
+                            {(() => {
+                              const validation = validateWidget(service.widget);
+                              return !validation.isValid && validation.errors.length > 0 && (
+                                <div className="mt-2 p-2 bg-red-900/20 border border-red-700/30 rounded text-xs">
+                                  <div className="text-red-400 font-medium mb-1">Widget Configuration Issues:</div>
+                                  <ul className="text-red-300 space-y-1">
+                                    {validation.errors.map((error, index) => (
+                                      <li key={index}>• {error}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
 
                         {/* Proxmox Configuration */}
                         {service.enableProxmox && (
@@ -2797,50 +3070,6 @@ const HomepageConfigGUI = () => {
                           </div>
                         )}
 
-                        {/* Proxmox Backup Server Configuration */}
-                        {service.widget?.type === 'proxmoxbackupserver' && (
-                          <div className="mt-4 pt-3 border-t border-slate-600">
-                            <label className="block text-slate-300 mb-2 text-sm font-medium">Proxmox Backup Server Configuration</label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div>
-                                <label className="block text-xs text-slate-400 mb-1">Username (API Token ID)</label>
-                                <input
-                                  type="text"
-                                  value={service.widget?.username || 'api_token_id'}
-                                  onChange={(e) => updateService(service.id, { 
-                                    widget: { ...service.widget, username: e.target.value }
-                                  })}
-                                  placeholder="user@pbs!tokenid"
-                                  className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs text-slate-400 mb-1">Password (API Token Secret)</label>
-                                <input
-                                  type="password"
-                                  value={service.widget?.password || 'api_token_secret'}
-                                  onChange={(e) => updateService(service.id, { 
-                                    widget: { ...service.widget, password: e.target.value }
-                                  })}
-                                  placeholder="API Token Secret"
-                                  className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
-                                />
-                              </div>
-                            </div>
-                            <div className="mt-2">
-                              <label className="block text-xs text-slate-400 mb-1">Datastore (Optional)</label>
-                              <input
-                                type="text"
-                                value={service.widget?.datastore || ''}
-                                onChange={(e) => updateService(service.id, { 
-                                  widget: { ...service.widget, datastore: e.target.value }
-                                })}
-                                placeholder="datastore_name (leave empty for combined usage)"
-                                className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
-                              />
-                            </div>
-                          </div>
-                        )}
 
                         {/* Ping Configuration */}
                         <div className="mt-4 pt-3 border-t border-slate-600">
@@ -3058,48 +3287,88 @@ const HomepageConfigGUI = () => {
 
                             {/* Widget Configuration */}
                             <div className="mt-3 pt-2 border-t border-slate-500">
-                              <label className="block text-slate-300 mb-1 text-xs font-medium">Widget Configuration (Optional)</label>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <div>
-                                  <label className="block text-xs text-slate-400 mb-1">Widget Type</label>
-                                  <select
-                                    value={service.widget?.type || ''}
-                                    onChange={(e) => updateService(service.id, { 
-                                      widget: { ...(service.widget || {}), type: e.target.value }
-                                    })}
-                                    className="w-full bg-slate-500 text-white px-2 py-1 rounded border border-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
-                                  >
-                                    <option value="">Select widget type</option>
-                                    {commonWidgetTypes.sort().map(type => (
-                                      <option key={type} value={type}>{type}</option>
-                                    ))}
-                                  </select>
-                                </div>
-                                <div>
-                                  <label className="block text-xs text-slate-400 mb-1">Widget URL</label>
-                                  <input
-                                    type="text"
-                                    value={service.widget?.url || ''}
-                                    onChange={(e) => updateService(service.id, { 
-                                      widget: { ...(service.widget || {}), url: e.target.value }
-                                    })}
-                                    placeholder="http://localhost:8080"
-                                    className="w-full bg-slate-500 text-white px-2 py-1 rounded border border-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
-                                  />
-                                </div>
+                              <label className="block text-slate-300 mb-2 text-xs font-medium">Widget Configuration (Optional)</label>
+                              
+                              {/* Widget Type Selector */}
+                              <div className="mb-2">
+                                <label className="block text-xs text-slate-400 mb-1">Widget Type</label>
+                                <select
+                                  value={service.widget?.type || ''}
+                                  onChange={(e) => {
+                                    if (e.target.value) {
+                                      const fieldDef = widgetFieldDefinitions[e.target.value] || widgetFieldDefinitions.default;
+                                      const newWidget = { type: e.target.value };
+                                      // Initialize all fields with empty values
+                                      fieldDef.fields.forEach(field => {
+                                        newWidget[field.key] = field.type === 'boolean' ? false : '';
+                                      });
+                                      updateService(service.id, { widget: newWidget });
+                                    } else {
+                                      updateService(service.id, { widget: null });
+                                    }
+                                  }}
+                                  className="w-full bg-slate-500 text-white px-2 py-1 rounded border border-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
+                                >
+                                  <option value="">Select widget type...</option>
+                                  {commonWidgetTypes.map(type => (
+                                    <option key={type} value={type}>{type}</option>
+                                  ))}
+                                </select>
                               </div>
-                              {service.widget?.type && (
-                                <div className="mt-2">
-                                  <label className="block text-xs text-slate-400 mb-1">API Key</label>
-                                  <input
-                                    type="text"
-                                    value={service.widget.key || ''}
-                                    onChange={(e) => updateService(service.id, { 
-                                      widget: { ...service.widget, key: e.target.value }
-                                    })}
-                                    placeholder="API Key"
-                                    className="w-full bg-slate-500 text-white px-2 py-1 rounded border border-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
-                                  />
+                              
+                              {/* Dynamic Widget Fields */}
+                              {service.widget && service.widget.type && (
+                                <div className="space-y-2">
+                                  {(widgetFieldDefinitions[service.widget.type] || widgetFieldDefinitions.default).fields.map(field => (
+                                    <div key={field.key}>
+                                      <label className="block text-xs text-slate-400 mb-1">
+                                        {field.label}
+                                        {field.required && <span className="text-red-400 ml-1">*</span>}
+                                      </label>
+                                      {field.type === 'boolean' ? (
+                                        <div className="flex items-center">
+                                          <input
+                                            type="checkbox"
+                                            checked={service.widget[field.key] === true || service.widget[field.key] === 'true'}
+                                            onChange={(e) => updateService(service.id, { 
+                                              widget: { ...service.widget, [field.key]: e.target.checked }
+                                            })}
+                                            className="w-3 h-3 text-blue-600 bg-slate-500 border-slate-400 rounded focus:ring-blue-500 focus:ring-1"
+                                          />
+                                          <span className="ml-2 text-xs text-slate-400">{field.placeholder || 'Enable this option'}</span>
+                                        </div>
+                                      ) : (
+                                        <input
+                                          type={field.type === 'password' ? 'password' : 'text'}
+                                          value={service.widget[field.key] || ''}
+                                          onChange={(e) => updateService(service.id, { 
+                                            widget: { ...service.widget, [field.key]: e.target.value }
+                                          })}
+                                          placeholder={field.placeholder}
+                                          className={`w-full bg-slate-500 text-white px-2 py-1 rounded border transition-all outline-none text-xs ${
+                                            field.required && (!service.widget[field.key] || service.widget[field.key] === '')
+                                              ? 'border-red-400 focus:border-red-300 focus:ring-1 focus:ring-red-300/20'
+                                              : 'border-slate-400 focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20'
+                                          }`}
+                                        />
+                                      )}
+                                    </div>
+                                  ))}
+                                  
+                                  {/* Validation Errors */}
+                                  {(() => {
+                                    const validation = validateWidget(service.widget);
+                                    return !validation.isValid && validation.errors.length > 0 && (
+                                      <div className="mt-2 p-2 bg-red-900/20 border border-red-700/30 rounded text-xs">
+                                        <div className="text-red-400 font-medium mb-1">Widget Issues:</div>
+                                        <ul className="text-red-300 space-y-1">
+                                          {validation.errors.map((error, index) => (
+                                            <li key={index}>• {error}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               )}
                             </div>
@@ -3176,50 +3445,6 @@ const HomepageConfigGUI = () => {
                               </div>
                             )}
 
-                            {/* Proxmox Backup Server Configuration */}
-                            {service.widget?.type === 'proxmoxbackupserver' && (
-                              <div className="mt-3 pt-2 border-t border-slate-500">
-                                <label className="block text-slate-300 mb-1 text-xs font-medium">Proxmox Backup Server Configuration</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  <div>
-                                    <label className="block text-xs text-slate-400 mb-1">Username (API Token ID)</label>
-                                    <input
-                                      type="text"
-                                      value={service.widget?.username || 'api_token_id'}
-                                      onChange={(e) => updateService(service.id, { 
-                                        widget: { ...service.widget, username: e.target.value }
-                                      })}
-                                      placeholder="user@pbs!tokenid"
-                                      className="w-full bg-slate-500 text-white px-2 py-1 rounded border border-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs text-slate-400 mb-1">Password (API Token Secret)</label>
-                                    <input
-                                      type="password"
-                                      value={service.widget?.password || 'api_token_secret'}
-                                      onChange={(e) => updateService(service.id, { 
-                                        widget: { ...service.widget, password: e.target.value }
-                                      })}
-                                      placeholder="API Token Secret"
-                                      className="w-full bg-slate-500 text-white px-2 py-1 rounded border border-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="mt-2">
-                                  <label className="block text-xs text-slate-400 mb-1">Datastore (Optional)</label>
-                                  <input
-                                    type="text"
-                                    value={service.widget?.datastore || ''}
-                                    onChange={(e) => updateService(service.id, { 
-                                      widget: { ...service.widget, datastore: e.target.value }
-                                    })}
-                                    placeholder="datastore_name (optional)"
-                                    className="w-full bg-slate-500 text-white px-2 py-1 rounded border border-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
-                                  />
-                                </div>
-                              </div>
-                            )}
 
                             {/* Ping Configuration */}
                             <div className="mt-3 pt-2 border-t border-slate-500">
