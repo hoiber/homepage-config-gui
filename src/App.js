@@ -2417,7 +2417,7 @@ const widgetFieldDefinitions = {
 
 const commonWidgetTypes = Object.keys(widgetFieldDefinitions)
   .filter(type => type !== 'default')
-  .sort();
+  .sort((a, b) => a.localeCompare(b));
 
 // Validate widget configuration
 const validateWidget = (widget) => {
@@ -2712,8 +2712,17 @@ const validateWidget = (widget) => {
                       />
                     ) : (
                       <h3
-                        className="text-lg font-medium cursor-pointer hover:text-blue-400 transition-colors"
+                        className="text-lg font-medium cursor-pointer hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/20 rounded"
                         onClick={() => setEditingGroup(group.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setEditingGroup(group.id);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Edit group name"
                       >
                         {group.name}
                       </h3>
@@ -2824,8 +2833,17 @@ const validateWidget = (widget) => {
                             />
                           ) : (
                             <span
-                              className="font-medium cursor-pointer hover:text-blue-400 transition-colors"
+                              className="font-medium cursor-pointer hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/20 rounded"
                               onClick={() => setEditingService(service.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  setEditingService(service.id);
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
+                              aria-label="Edit service name"
                             >
                               {service.name}
                             </span>
@@ -2875,8 +2893,9 @@ const validateWidget = (widget) => {
                       <>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                         <div>
-                          <label className="block text-slate-300 mb-1">URL</label>
+                          <label htmlFor={`service-url-${service.id}`} className="block text-slate-300 mb-1">URL</label>
                           <input
+                            id={`service-url-${service.id}`}
                             type="text"
                             value={service.href}
                             onChange={(e) => updateService(service.id, { href: e.target.value })}
@@ -2885,8 +2904,9 @@ const validateWidget = (widget) => {
                           />
                         </div>
                         <div>
-                          <label className="block text-slate-300 mb-1">Icon</label>
+                          <label htmlFor={`service-icon-${service.id}`} className="block text-slate-300 mb-1">Icon</label>
                           <input
+                            id={`service-icon-${service.id}`}
                             type="text"
                             value={service.icon}
                             onChange={(e) => updateService(service.id, { icon: e.target.value })}
@@ -2895,8 +2915,9 @@ const validateWidget = (widget) => {
                           />
                         </div>
                         <div className="sm:col-span-2">
-                          <label className="block text-slate-300 mb-1">Description</label>
+                          <label htmlFor={`service-desc-${service.id}`} className="block text-slate-300 mb-1">Description</label>
                           <input
+                            id={`service-desc-${service.id}`}
                             type="text"
                             value={service.description}
                             onChange={(e) => updateService(service.id, { description: e.target.value })}
@@ -3122,8 +3143,8 @@ const validateWidget = (widget) => {
                           </div>
                         </div>
                       </div>
-                      </>
-                      )}
+                    </>
+                    )}
                     </div>
                   ))}
 
@@ -3144,8 +3165,17 @@ const validateWidget = (widget) => {
                             />
                           ) : (
                             <h4
-                              className="text-sm font-medium text-blue-300 cursor-pointer hover:text-blue-200 transition-colors"
+                              className="text-sm font-medium text-blue-300 cursor-pointer hover:text-blue-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/20 rounded"
                               onClick={() => setEditingGroup(subgroup.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  setEditingGroup(subgroup.id);
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
+                              aria-label="Edit subgroup name"
                             >
                               📁 {subgroup.name}
                             </h4>
