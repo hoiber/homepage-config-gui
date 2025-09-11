@@ -989,8 +989,6 @@ const HomepageConfigGUI = () => {
     configPath: '',
     status: 'unknown'
   });
-  // eslint-disable-next-line no-unused-vars
-  const [backupFiles, setBackupFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const [config, setConfig] = useState({
@@ -1272,37 +1270,14 @@ const HomepageConfigGUI = () => {
     try {
       const response = await fetch(`/api/config/${type}/backups`);
       if (response.ok) {
-        const backups = await response.json();
-        setBackupFiles(backups);
+        await response.json();
+        // Backup files loaded successfully
       }
     } catch (error) {
       console.error('Failed to load backup list:', error);
     }
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const deleteBackup = async (type, timestamp) => {
-    if (!liveUpdateConfig.enabled) return false;
-    
-    try {
-      const response = await fetch(`/api/config/${type}/backup/${timestamp}`, {
-        method: 'DELETE',
-      });
-      
-      if (response.ok) {
-        setImportSuccess('Backup deleted successfully');
-        loadBackupList(type); // Refresh list
-        return true;
-      } else {
-        const errorData = await response.json();
-        setImportError(errorData.error || 'Failed to delete backup');
-        return false;
-      }
-    } catch (error) {
-      setImportError(`Failed to delete backup: ${error.message}`);
-      return false;
-    }
-  };
 
   // Check live update status on component mount
   useEffect(() => {
@@ -2929,11 +2904,12 @@ const validateWidget = (widget) => {
 
                       {/* Widget Configuration */}
                       <div className="mt-4 pt-3 border-t border-slate-600">
-                        <label className="block text-slate-300 mb-2 text-sm">Widget (Optional)</label>
+                        <label htmlFor={`service-widget-${service.id}`} className="block text-slate-300 mb-2 text-sm">Widget (Optional)</label>
                         
                         {/* Widget Type Selector */}
                         <div className="mb-3">
                           <select
+                            id={`service-widget-${service.id}`}
                             value={service.widget?.type || ''}
                             onChange={(e) => {
                               if (e.target.value) {
@@ -2962,13 +2938,14 @@ const validateWidget = (widget) => {
                           <div className="space-y-3">
                             {(widgetFieldDefinitions[service.widget.type] || widgetFieldDefinitions.default).fields.map(field => (
                               <div key={field.key}>
-                                <label className="block text-xs text-slate-400 mb-1">
+                                <label htmlFor={`widget-${service.id}-${field.key}`} className="block text-xs text-slate-400 mb-1">
                                   {field.label}
                                   {field.required && <span className="text-red-400 ml-1">*</span>}
                                 </label>
                                 {field.type === 'boolean' ? (
                                   <div className="flex items-center">
                                     <input
+                                      id={`widget-${service.id}-${field.key}`}
                                       type="checkbox"
                                       checked={service.widget[field.key] === true || service.widget[field.key] === 'true'}
                                       onChange={(e) => updateService(service.id, { 
@@ -2980,6 +2957,7 @@ const validateWidget = (widget) => {
                                   </div>
                                 ) : (
                                   <input
+                                    id={`widget-${service.id}-${field.key}`}
                                     type={field.type === 'password' ? 'password' : 'text'}
                                     value={service.widget[field.key] || ''}
                                     onChange={(e) => updateService(service.id, { 
@@ -3033,8 +3011,9 @@ const validateWidget = (widget) => {
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               <div>
-                                <label className="block text-xs text-slate-400 mb-1">Node Name</label>
+                                <label htmlFor={`proxmox-node-${service.id}`} className="block text-xs text-slate-400 mb-1">Node Name</label>
                                 <input
+                                  id={`proxmox-node-${service.id}`}
                                   type="text"
                                   value={service.proxmoxNode || 'pve'}
                                   onChange={(e) => updateService(service.id, { proxmoxNode: e.target.value })}
@@ -3043,8 +3022,9 @@ const validateWidget = (widget) => {
                                 />
                               </div>
                               <div>
-                                <label className="block text-xs text-slate-400 mb-1">VM/Container ID</label>
+                                <label htmlFor={`proxmox-vmid-${service.id}`} className="block text-xs text-slate-400 mb-1">VM/Container ID</label>
                                 <input
+                                  id={`proxmox-vmid-${service.id}`}
                                   type="number"
                                   value={service.proxmoxVMID || 101}
                                   onChange={(e) => updateService(service.id, { proxmoxVMID: parseInt(e.target.value) || 101 })}
@@ -3053,8 +3033,9 @@ const validateWidget = (widget) => {
                                 />
                               </div>
                               <div>
-                                <label className="block text-xs text-slate-400 mb-1">Type</label>
+                                <label htmlFor={`proxmox-type-${service.id}`} className="block text-xs text-slate-400 mb-1">Type</label>
                                 <select
+                                  id={`proxmox-type-${service.id}`}
                                   value={service.proxmoxType || 'qemu'}
                                   onChange={(e) => updateService(service.id, { proxmoxType: e.target.value })}
                                   className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
@@ -3091,8 +3072,9 @@ const validateWidget = (widget) => {
                           <label className="block text-slate-300 mb-2 text-sm font-medium">Ping Configuration (Optional)</label>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-xs text-slate-400 mb-1">Host/URL to ping</label>
+                              <label htmlFor={`ping-url-${service.id}`} className="block text-xs text-slate-400 mb-1">Host/URL to ping</label>
                               <input
+                                id={`ping-url-${service.id}`}
                                 type="text"
                                 value={service.ping?.url || ''}
                                 onChange={(e) => updateService(service.id, { 
@@ -3103,8 +3085,9 @@ const validateWidget = (widget) => {
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-slate-400 mb-1">Interval (seconds)</label>
+                              <label htmlFor={`ping-interval-${service.id}`} className="block text-xs text-slate-400 mb-1">Interval (seconds)</label>
                               <input
+                                id={`ping-interval-${service.id}`}
                                 type="number"
                                 value={service.ping?.interval || 30}
                                 onChange={(e) => updateService(service.id, { 
@@ -3118,8 +3101,9 @@ const validateWidget = (widget) => {
                             </div>
                           </div>
                           <div className="flex items-center gap-4 mt-2">
-                            <label className="flex items-center gap-2 text-xs text-slate-400">
+                            <label htmlFor={`ping-enabled-${service.id}`} className="flex items-center gap-2 text-xs text-slate-400">
                               <input
+                                id={`ping-enabled-${service.id}`}
                                 type="checkbox"
                                 checked={service.ping?.enabled || false}
                                 onChange={(e) => updateService(service.id, { 
@@ -3129,8 +3113,9 @@ const validateWidget = (widget) => {
                               />
                               Enable ping monitoring
                             </label>
-                            <label className="flex items-center gap-2 text-xs text-slate-400">
+                            <label htmlFor={`ping-public-${service.id}`} className="flex items-center gap-2 text-xs text-slate-400">
                               <input
+                                id={`ping-public-${service.id}`}
                                 type="checkbox"
                                 checked={service.ping?.public || false}
                                 onChange={(e) => updateService(service.id, { 
@@ -3256,8 +3241,16 @@ const validateWidget = (widget) => {
                                   />
                                 ) : (
                                   <span
-                                    className="font-medium cursor-pointer hover:text-blue-300 transition-colors text-sm"
+                                    className="font-medium cursor-pointer hover:text-blue-300 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/20 rounded"
                                     onClick={() => setEditingService(service.id)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        setEditingService(service.id);
+                                      }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
                                   >
                                     {service.name}
                                   </span>

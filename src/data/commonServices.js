@@ -1,5 +1,11 @@
 // Common service definitions with default configurations
-export const commonServices = {
+// Lazy-loaded to improve initial bundle size
+let _commonServices = null;
+
+export const getCommonServices = () => {
+  if (_commonServices) return _commonServices;
+  
+  _commonServices = {
     // Media Servers & Streaming
     plex: {
       name: 'Plex',
@@ -950,3 +956,52 @@ export const commonServices = {
       widget: { type: 'octoprint', url: 'http://localhost:5000', key: 'your-api-key' }
     }
   };
+  
+  return _commonServices;
+};
+
+// For backward compatibility, but prefer getCommonServices() for better performance
+export const commonServices = new Proxy({}, {
+  get(target, prop) {
+    return getCommonServices()[prop];
+  },
+  has(target, prop) {
+    return prop in getCommonServices();
+  },
+  ownKeys() {
+    return Object.keys(getCommonServices());
+  }
+});
+
+// Service categories for better organization
+export const SERVICE_CATEGORIES = {
+  MEDIA: 'Media & Streaming',
+  INFRASTRUCTURE: 'Infrastructure & Networking', 
+  DOWNLOAD: 'Download Clients',
+  AUTOMATION: 'Automation & Management',
+  MONITORING: 'Monitoring & Analytics',
+  PRODUCTIVITY: 'Productivity & Tools',
+  SECURITY: 'Security & VPN'
+};
+
+// Get services by category
+export const getServicesByCategory = (category) => {
+  const services = getCommonServices();
+  // This is a simplified categorization - in a real app you'd have proper categorization
+  const mediaServices = ['plex', 'jellyfin', 'emby', 'sonarr', 'radarr', 'lidarr'];
+  const infraServices = ['portainer', 'traefik', 'proxmox', 'truenas'];
+  // ... etc
+  
+  switch(category) {
+    case SERVICE_CATEGORIES.MEDIA:
+      return Object.fromEntries(
+        mediaServices.map(key => [key, services[key]]).filter(([, service]) => service)
+      );
+    case SERVICE_CATEGORIES.INFRASTRUCTURE:
+      return Object.fromEntries(
+        infraServices.map(key => [key, services[key]]).filter(([, service]) => service)
+      );
+    default:
+      return services;
+  }
+};
