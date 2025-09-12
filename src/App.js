@@ -2686,21 +2686,13 @@ const validateWidget = (widget) => {
                         autoFocus
                       />
                     ) : (
-                      <h3
-                        className="text-lg font-medium cursor-pointer hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/20 rounded"
+                      <button
+                        className="text-lg font-medium cursor-pointer hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/20 rounded bg-transparent border-none text-left w-full"
                         onClick={() => setEditingGroup(group.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            setEditingGroup(group.id);
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
                         aria-label="Edit group name"
                       >
                         {group.name}
-                      </h3>
+                      </button>
                     )}
                   </div>
                   <div className="flex items-center gap-3">
@@ -3149,21 +3141,13 @@ const validateWidget = (widget) => {
                               autoFocus
                             />
                           ) : (
-                            <h4
-                              className="text-sm font-medium text-blue-300 cursor-pointer hover:text-blue-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/20 rounded"
+                            <button
+                              className="text-sm font-medium text-blue-300 cursor-pointer hover:text-blue-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400/20 rounded bg-transparent border-none text-left w-full"
                               onClick={() => setEditingGroup(subgroup.id)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault();
-                                  setEditingGroup(subgroup.id);
-                                }
-                              }}
-                              role="button"
-                              tabIndex={0}
                               aria-label="Edit subgroup name"
                             >
                               📁 {subgroup.name}
-                            </h4>
+                            </button>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
@@ -3270,8 +3254,9 @@ const validateWidget = (widget) => {
                             {/* Service Form Fields - Same as main group services but with smaller styling */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                               <div>
-                                <label className="block text-slate-300 mb-1 text-xs">Service URL</label>
+                                <label htmlFor={`subgroup-service-url-${service.id}`} className="block text-slate-300 mb-1 text-xs">Service URL</label>
                                 <input
+                                  id={`subgroup-service-url-${service.id}`}
                                   type="url"
                                   value={service.href || ''}
                                   onChange={(e) => updateService(service.id, { href: e.target.value })}
@@ -3280,8 +3265,9 @@ const validateWidget = (widget) => {
                                 />
                               </div>
                               <div>
-                                <label className="block text-slate-300 mb-1 text-xs">Icon</label>
+                                <label htmlFor={`subgroup-service-icon-${service.id}`} className="block text-slate-300 mb-1 text-xs">Icon</label>
                                 <input
+                                  id={`subgroup-service-icon-${service.id}`}
                                   type="text"
                                   value={service.icon || ''}
                                   onChange={(e) => updateService(service.id, { icon: e.target.value })}
@@ -3292,8 +3278,9 @@ const validateWidget = (widget) => {
                             </div>
 
                             <div className="mt-2">
-                              <label className="block text-slate-300 mb-1 text-xs">Description</label>
+                              <label htmlFor={`subgroup-service-desc-${service.id}`} className="block text-slate-300 mb-1 text-xs">Description</label>
                               <input
+                                id={`subgroup-service-desc-${service.id}`}
                                 type="text"
                                 value={service.description || ''}
                                 onChange={(e) => updateService(service.id, { description: e.target.value })}
@@ -3308,8 +3295,9 @@ const validateWidget = (widget) => {
                               
                               {/* Widget Type Selector */}
                               <div className="mb-2">
-                                <label className="block text-xs text-slate-400 mb-1">Widget Type</label>
+                                <label htmlFor={`subgroup-widget-type-${service.id}`} className="block text-xs text-slate-400 mb-1">Widget Type</label>
                                 <select
+                                  id={`subgroup-widget-type-${service.id}`}
                                   value={service.widget?.type || ''}
                                   onChange={(e) => {
                                     if (e.target.value) {
@@ -3410,8 +3398,9 @@ const validateWidget = (widget) => {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                   <div>
-                                    <label className="block text-xs text-slate-400 mb-1">Node Name</label>
+                                    <label htmlFor={`subgroup-proxmox-node-${service.id}`} className="block text-xs text-slate-400 mb-1">Node Name</label>
                                     <input
+                                      id={`subgroup-proxmox-node-${service.id}`}
                                       type="text"
                                       value={service.proxmoxNode || 'pve'}
                                       onChange={(e) => updateService(service.id, { proxmoxNode: e.target.value })}
@@ -3420,8 +3409,9 @@ const validateWidget = (widget) => {
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-xs text-slate-400 mb-1">VM/Container ID</label>
+                                    <label htmlFor={`subgroup-proxmox-vmid-${service.id}`} className="block text-xs text-slate-400 mb-1">VM/Container ID</label>
                                     <input
+                                      id={`subgroup-proxmox-vmid-${service.id}`}
                                       type="number"
                                       value={service.proxmoxVMID || 101}
                                       onChange={(e) => updateService(service.id, { proxmoxVMID: parseInt(e.target.value) || 101 })}
@@ -3430,8 +3420,9 @@ const validateWidget = (widget) => {
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-xs text-slate-400 mb-1">Type</label>
+                                    <label htmlFor={`subgroup-proxmox-type-${service.id}`} className="block text-xs text-slate-400 mb-1">Type</label>
                                     <select
+                                      id={`subgroup-proxmox-type-${service.id}`}
                                       value={service.proxmoxType || 'qemu'}
                                       onChange={(e) => updateService(service.id, { proxmoxType: e.target.value })}
                                       className="w-full bg-slate-500 text-white px-2 py-1 rounded border border-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
@@ -3468,8 +3459,9 @@ const validateWidget = (widget) => {
                               <label className="block text-slate-300 mb-1 text-xs font-medium">Ping Configuration (Optional)</label>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>
-                                  <label className="block text-xs text-slate-400 mb-1">Host/URL to ping</label>
+                                  <label htmlFor={`subgroup-ping-url-${service.id}`} className="block text-xs text-slate-400 mb-1">Host/URL to ping</label>
                                   <input
+                                    id={`subgroup-ping-url-${service.id}`}
                                     type="text"
                                     value={service.ping?.url || ''}
                                     onChange={(e) => updateService(service.id, { 
@@ -3480,8 +3472,9 @@ const validateWidget = (widget) => {
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-xs text-slate-400 mb-1">Interval (seconds)</label>
+                                  <label htmlFor={`subgroup-ping-interval-${service.id}`} className="block text-xs text-slate-400 mb-1">Interval (seconds)</label>
                                   <input
+                                    id={`subgroup-ping-interval-${service.id}`}
                                     type="number"
                                     value={service.ping?.interval || 30}
                                     onChange={(e) => updateService(service.id, { 
@@ -3495,8 +3488,9 @@ const validateWidget = (widget) => {
                                 </div>
                               </div>
                               <div className="flex items-center gap-4 mt-2">
-                                <label className="flex items-center gap-2 text-xs text-slate-400">
+                                <label htmlFor={`subgroup-ping-enabled-${service.id}`} className="flex items-center gap-2 text-xs text-slate-400">
                                   <input
+                                    id={`subgroup-ping-enabled-${service.id}`}
                                     type="checkbox"
                                     checked={service.ping?.enabled || false}
                                     onChange={(e) => updateService(service.id, { 
@@ -3506,8 +3500,9 @@ const validateWidget = (widget) => {
                                   />
                                   Enable ping monitoring
                                 </label>
-                                <label className="flex items-center gap-2 text-xs text-slate-400">
+                                <label htmlFor={`subgroup-ping-public-${service.id}`} className="flex items-center gap-2 text-xs text-slate-400">
                                   <input
+                                    id={`subgroup-ping-public-${service.id}`}
                                     type="checkbox"
                                     checked={service.ping?.public || false}
                                     onChange={(e) => updateService(service.id, { 
@@ -3645,8 +3640,9 @@ const validateWidget = (widget) => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-slate-300 mb-1 text-sm">Title</label>
+                      <label htmlFor="settings-title" className="block text-slate-300 mb-1 text-sm">Title</label>
                       <input
+                        id="settings-title"
                         type="text"
                         value={settingsConfig.title}
                         onChange={(e) => setSettingsConfig(prev => ({ ...prev, title: e.target.value }))}
@@ -3655,8 +3651,9 @@ const validateWidget = (widget) => {
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-300 mb-1 text-sm">Favicon URL</label>
+                      <label htmlFor="settings-favicon" className="block text-slate-300 mb-1 text-sm">Favicon URL</label>
                       <input
+                        id="settings-favicon"
                         type="url"
                         value={settingsConfig.favicon}
                         onChange={(e) => setSettingsConfig(prev => ({ ...prev, favicon: e.target.value }))}
@@ -3668,8 +3665,9 @@ const validateWidget = (widget) => {
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-slate-300 mb-1 text-sm">Theme</label>
+                      <label htmlFor="settings-theme" className="block text-slate-300 mb-1 text-sm">Theme</label>
                       <select
+                        id="settings-theme"
                         value={settingsConfig.theme}
                         onChange={(e) => setSettingsConfig(prev => ({ ...prev, theme: e.target.value }))}
                         className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
@@ -3679,8 +3677,9 @@ const validateWidget = (widget) => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-slate-300 mb-1 text-sm">Color</label>
+                      <label htmlFor="settings-color" className="block text-slate-300 mb-1 text-sm">Color</label>
                       <select
+                        id="settings-color"
                         value={settingsConfig.color}
                         onChange={(e) => setSettingsConfig(prev => ({ ...prev, color: e.target.value }))}
                         className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
