@@ -2,6 +2,9 @@
 import { useState, useEffect } from 'react';
 import { Plus, Download, Trash2, Copy, Home, Settings, Upload, ChevronUp, ChevronDown, ChevronRight, List, Cog, Info, CloudUpload, CloudDownload } from 'lucide-react';
 import yaml from 'js-yaml';
+import { useServiceOperations } from './hooks/useServiceOperations';
+import { useFileOperations } from './hooks/useFileOperations';
+import GroupManager from './components/GroupManager';
 
 // Generate secure random IDs
 const generateId = (prefix = '') => {
@@ -980,8 +983,6 @@ const commonServices = {
 const HomepageConfigGUI = () => {
   const [activeTab, setActiveTab] = useState('services');
   const [selectedQuickAdd, setSelectedQuickAdd] = useState({});
-  const [importError, setImportError] = useState('');
-  const [importSuccess, setImportSuccess] = useState('');
   
   // Live update functionality
   const [liveUpdateConfig, setLiveUpdateConfig] = useState({
@@ -1061,6 +1062,10 @@ const HomepageConfigGUI = () => {
       console.warn('Failed to save UI preferences to localStorage:', error);
     }
   }, [uiPreferences]);
+
+  // Custom hooks for reduced complexity
+  const serviceOps = useServiceOperations(config, setConfig);
+  const fileOps = useFileOperations(config, setConfig);
 
   // Helper to generate service URL with domain pattern
 
@@ -1196,17 +1201,17 @@ const HomepageConfigGUI = () => {
               setProxmoxConfig(prev => ({ ...prev, ...parsed.proxmox }));
             }
           }
-          setImportSuccess(`Loaded ${type} configuration from server`);
-          setImportError('');
+          fileOps.setImportSuccess(`Loaded ${type} configuration from server`);
+          fileOps.setImportError('');
         } catch (parseError) {
-          setImportError(`Failed to parse ${type} configuration: ${parseError.message}`);
+          fileOps.setImportError(`Failed to parse ${type} configuration: ${parseError.message}`);
           return false;
         }
       }
       
       return true;
     } catch (error) {
-      setImportError(`Failed to load ${type} configuration: ${error.message}`);
+      fileOps.setImportError(`Failed to load ${type} configuration: ${error.message}`);
       return false;
     } finally {
       setIsLoading(false);
@@ -1231,7 +1236,7 @@ const HomepageConfigGUI = () => {
       }
       
       if (!content || content.trim() === '# No configuration yet') {
-        setImportError(`No ${type} configuration to save`);
+        fileOps.setImportError(`No ${type} configuration to save`);
         return false;
       }
       
@@ -1249,15 +1254,15 @@ const HomepageConfigGUI = () => {
       }
       
       const data = await response.json();
-      setImportSuccess(`Saved ${type} configuration to ${data.path}`);
-      setImportError('');
+      fileOps.setImportSuccess(`Saved ${type} configuration to ${data.path}`);
+      fileOps.setImportError('');
       
       // Refresh backup list
       loadBackupList(type);
       
       return true;
     } catch (error) {
-      setImportError(`Failed to save ${type} configuration: ${error.message}`);
+      fileOps.setImportError(`Failed to save ${type} configuration: ${error.message}`);
       return false;
     } finally {
       setIsLoading(false);
@@ -1665,145 +1670,7 @@ const HomepageConfigGUI = () => {
     return groups;
   };
 
-  const importConfig = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
 
-    // Validate file type - be more flexible
-    const fileName = file.name.toLowerCase();
-    const validExtensions = ['.yaml', '.yml', '.txt'];
-    const isValidType = validExtensions.some(ext => fileName.endsWith(ext)) || 
-                       file.type === 'text/yaml' || 
-                       file.type === 'text/plain' || 
-                       file.type === 'application/x-yaml';
-    
-    if (!isValidType) {
-      setImportError('Please select a YAML file (.yaml, .yml) or text file (.txt). Other formats are not supported.');
-      setImportSuccess('');
-      event.target.value = '';
-      return;
-    }
-
-    // Validate file size (max 1MB)
-    if (file.size > 1024 * 1024) {
-      setImportError('File size too large. Please select a file smaller than 1MB.');
-      setImportSuccess('');
-      event.target.value = '';
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const yamlContent = e.target.result;
-        if (!yamlContent || typeof yamlContent !== 'string') {
-          throw new Error('Invalid file content');
-        }
-        
-        const importedGroups = parseYAML(yamlContent);
-        
-        if (importedGroups && importedGroups.length > 0) {
-          setConfig({ groups: importedGroups });
-          setImportError('');
-          
-          // Count services including those in subgroups
-          const totalServices = importedGroups.reduce((total, group) => {
-            const mainServices = group.services?.length || 0;
-            const subgroupServices = (group.subgroups || []).reduce((subTotal, subgroup) => {
-              return subTotal + (subgroup.services?.length || 0);
-            }, 0);
-            return total + mainServices + subgroupServices;
-          }, 0);
-          
-          const totalSubgroups = importedGroups.reduce((total, group) => total + (group.subgroups?.length || 0), 0);
-          
-          // Count services with widgets and ping
-          const servicesWithWidgets = importedGroups.reduce((total, group) => {
-            const mainWithWidgets = (group.services || []).filter(s => s.widget?.type).length;
-            const subWithWidgets = (group.subgroups || []).reduce((subTotal, subgroup) => {
-              return subTotal + (subgroup.services || []).filter(s => s.widget?.type).length;
-            }, 0);
-            return total + mainWithWidgets + subWithWidgets;
-          }, 0);
-          
-          const servicesWithPing = importedGroups.reduce((total, group) => {
-            const mainWithPing = (group.services || []).filter(s => s.ping?.enabled).length;
-            const subWithPing = (group.subgroups || []).reduce((subTotal, subgroup) => {
-              return subTotal + (subgroup.services || []).filter(s => s.ping?.enabled).length;
-            }, 0);
-            return total + mainWithPing + subWithPing;
-          }, 0);
-          
-          let successMessage = `✅ Successfully imported ${importedGroups.length} group(s)`;
-          if (totalSubgroups > 0) successMessage += `, ${totalSubgroups} subgroup(s)`;
-          successMessage += `, and ${totalServices} service(s)`;
-          if (servicesWithWidgets > 0) successMessage += ` (${servicesWithWidgets} with widgets)`;
-          if (servicesWithPing > 0) successMessage += ` (${servicesWithPing} with ping monitoring)`;
-          successMessage += '. Configuration has been normalized and validated.';
-          
-          setImportSuccess(successMessage);
-          setTimeout(() => setImportSuccess(''), 8000);
-        } else {
-          setImportError('No valid groups found in the YAML file. Please check the format and try again.');
-          setImportSuccess('');
-        }
-      } catch (error) {
-        console.error('Import error:', error);
-        setImportError(`Error parsing YAML: ${error.message || 'Unknown error'}. The file may be corrupted or in an unsupported format.`);
-        setImportSuccess('');
-      }
-    };
-    
-    reader.onerror = () => {
-      setImportError('Error reading file. Please try again.');
-      setImportSuccess('');
-    };
-    
-    reader.readAsText(file);
-    
-    // Reset file input
-    event.target.value = '';
-  };
-
-  const triggerImport = () => {
-    document.getElementById('yaml-import').click();
-  };
-
-  const moveServiceUp = (groupId, serviceId) => {
-    setConfig(prev => ({
-      ...prev,
-      groups: prev.groups.map(group => {
-        if (group.id === groupId) {
-          const serviceIndex = group.services.findIndex(s => s.id === serviceId);
-          if (serviceIndex > 0) {
-            const newServices = [...group.services];
-            [newServices[serviceIndex - 1], newServices[serviceIndex]] = 
-            [newServices[serviceIndex], newServices[serviceIndex - 1]];
-            return { ...group, services: newServices };
-          }
-        }
-        return group;
-      })
-    }));
-  };
-
-  const moveServiceDown = (groupId, serviceId) => {
-    setConfig(prev => ({
-      ...prev,
-      groups: prev.groups.map(group => {
-        if (group.id === groupId) {
-          const serviceIndex = group.services.findIndex(s => s.id === serviceId);
-          if (serviceIndex < group.services.length - 1) {
-            const newServices = [...group.services];
-            [newServices[serviceIndex], newServices[serviceIndex + 1]] = 
-            [newServices[serviceIndex + 1], newServices[serviceIndex]];
-            return { ...group, services: newServices };
-          }
-        }
-        return group;
-      })
-    }));
-  };
 
   const moveGroupUp = (groupId) => {
     setConfig(prev => {
@@ -2120,18 +1987,18 @@ const HomepageConfigGUI = () => {
                          activeTab === 'widgets' ? generateWidgetsYAML() : 
                          generateProxmoxYAML();
       if (!yamlContent) {
-        setImportError('No configuration to copy');
-        setTimeout(() => setImportError(''), 3000);
+        fileOps.setImportError('No configuration to copy');
+        setTimeout(() => fileOps.setImportError(''), 3000);
         return;
       }
       
       await navigator.clipboard.writeText(yamlContent);
-      setImportSuccess('YAML copied to clipboard!');
-      setImportError('');
-      setTimeout(() => setImportSuccess(''), 3000);
+      fileOps.setImportSuccess('YAML copied to clipboard!');
+      fileOps.setImportError('');
+      setTimeout(() => fileOps.setImportSuccess(''), 3000);
     } catch (error) {
-      setImportError('Failed to copy to clipboard');
-      setTimeout(() => setImportError(''), 3000);
+      fileOps.setImportError('Failed to copy to clipboard');
+      setTimeout(() => fileOps.setImportError(''), 3000);
     }
   };
 
@@ -2485,18 +2352,18 @@ const validateWidget = (widget) => {
           id="yaml-import"
           type="file"
           accept=".yaml,.yml,.txt,text/yaml,text/plain,application/x-yaml"
-          onChange={importConfig}
+          onChange={fileOps.handleImport}
           className="hidden"
         />
 
         {/* Import Success/Error Display */}
-        {importSuccess && (
+        {fileOps.importSuccess && (
           <div className="mb-6 p-4 bg-green-900/20 border border-green-800 rounded-lg">
             <div className="flex items-center gap-2 text-green-300">
               <span className="font-semibold">Success:</span>
-              <span>{importSuccess}</span>
+              <span>{fileOps.importSuccess}</span>
               <button
-                onClick={() => setImportSuccess('')}
+                onClick={() => fileOps.setImportSuccess('')}
                 className="ml-auto text-green-400 hover:text-green-300"
               >
                 ×
@@ -2504,13 +2371,13 @@ const validateWidget = (widget) => {
             </div>
           </div>
         )}
-        {importError && (
+        {fileOps.importError && (
           <div className="mb-6 p-4 bg-red-900/20 border border-red-800 rounded-lg">
             <div className="flex items-center gap-2 text-red-300">
               <span className="font-semibold">Import Error:</span>
-              <span>{importError}</span>
+              <span>{fileOps.importError}</span>
               <button
-                onClick={() => setImportError('')}
+                onClick={() => fileOps.setImportError('')}
                 className="ml-auto text-red-400 hover:text-red-300"
               >
                 ×
@@ -2530,7 +2397,7 @@ const validateWidget = (widget) => {
           </div>
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={triggerImport}
+              onClick={fileOps.triggerImport}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
             >
               <Upload className="h-4 w-4" />
@@ -2821,7 +2688,7 @@ const validateWidget = (widget) => {
                           <div className="flex items-center gap-1 bg-blue-900/30 px-2 py-1 rounded border border-blue-700">
                             <span className="text-xs text-blue-300 mr-1">#</span>
                             <button
-                              onClick={() => moveServiceUp(group.id, service.id)}
+                              onClick={() => serviceOps.moveServiceUp(group.id, service.id)}
                               disabled={index === 0}
                               className={`p-1 rounded transition-all ${
                                 index === 0 
@@ -2833,7 +2700,7 @@ const validateWidget = (widget) => {
                               <ChevronUp className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => moveServiceDown(group.id, service.id)}
+                              onClick={() => serviceOps.moveServiceDown(group.id, service.id)}
                               disabled={index === group.services.length - 1}
                               className={`p-1 rounded transition-all ${
                                 index === group.services.length - 1

@@ -8,7 +8,7 @@ export const generateId = (prefix = '') => {
   const cryptoSource = 
     (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto :
     (typeof global !== 'undefined' && global.crypto && global.crypto.randomUUID) ? global.crypto :
-    (typeof globalThis !== 'undefined' && globalThis.crypto && globalThis.crypto.randomUUID) ? globalThis.crypto :
+    (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) ? window.crypto :
     null;
   
   if (cryptoSource && cryptoSource.randomUUID) {
