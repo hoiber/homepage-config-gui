@@ -1,15 +1,26 @@
 // Input validation utilities
 
 export const validators = {
-  required: (value) => ({
-    isValid: value && value.trim().length > 0,
-    message: 'This field is required'
-  }),
+  required: (value) => {
+    const isValid = value != null && typeof value === 'string' && value.trim().length > 0;
+    return {
+      isValid,
+      message: isValid ? '' : 'This field is required'
+    };
+  },
 
   url: (value) => {
     if (!value) return { isValid: true, message: '' }; // Optional field
     try {
-      new URL(value);
+      const url = new URL(value);
+      // Additional validation: must have a valid protocol
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        return { isValid: false, message: 'Please enter a valid URL' };
+      }
+      // Must have a hostname
+      if (!url.hostname || url.hostname.length === 0) {
+        return { isValid: false, message: 'Please enter a valid URL' };
+      }
       return { isValid: true, message: '' };
     } catch {
       return { isValid: false, message: 'Please enter a valid URL' };
