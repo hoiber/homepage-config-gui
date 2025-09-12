@@ -702,13 +702,6 @@ export const getCommonServices = () => {
       icon: 'healthchecks',
       widget: { type: 'healthchecks', url: 'http://localhost:8000', key: 'your-api-key' }
     },
-    watchtower: {
-      name: 'Watchtower',
-      href: 'http://localhost:8080',
-      description: 'Container auto-updater',
-      icon: 'watchtower',
-      widget: { type: 'watchtower', url: 'http://localhost:8080', key: '' }
-    },
     gatus: {
       name: 'Gatus',
       href: 'http://localhost:8080',
