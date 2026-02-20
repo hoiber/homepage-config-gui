@@ -1188,8 +1188,8 @@ const HomepageConfigGUI = () => {
       if (data.content) {
         try {
           const parsed = parseYAML(data.content);
-          if (type === 'services' && parsed.services) {
-            setConfig({ groups: parsed.services });
+          if (type === 'services' && Array.isArray(parsed)) {
+            setConfig({ groups: parsed });
           } else if (type === 'settings') {
             setSettingsConfig(prev => ({ ...prev, ...parsed }));
           } else if (type === 'widgets') {
@@ -1536,7 +1536,12 @@ const HomepageConfigGUI = () => {
       if (parsed.services && Array.isArray(parsed.services)) {
         return convertServicesFormat(parsed.services);
       }
-      
+
+      // Handle standard homepage format: top-level array of [{GroupName: [services]}]
+      if (Array.isArray(parsed)) {
+        return convertServicesFormat(parsed);
+      }
+
       // Handle grouped structure where each top-level key is a group
       Object.entries(parsed).forEach(([groupName, groupData]) => {
         if (groupData && Array.isArray(groupData)) {
