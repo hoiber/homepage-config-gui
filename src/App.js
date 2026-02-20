@@ -1071,7 +1071,7 @@ const HomepageConfigGUI = () => {
 
   // Helper to update service URL based on name change
   const updateServiceUrl = (service, newName) => {
-    const cleanName = newName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const cleanName = newName.toLowerCase().replaceAll(/[^a-z0-9]/g, '');
     const domain = uiPreferences.globalDomain || 'local';
     const newHost = `${cleanName}.${domain}`;
     
@@ -1310,7 +1310,7 @@ const HomepageConfigGUI = () => {
       href: quickService.href.includes('localhost') 
         ? (() => {
             const domain = uiPreferences.globalDomain || 'local';
-            const cleanName = quickService.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const cleanName = quickService.name.toLowerCase().replaceAll(/[^a-z0-9]/g, '');
             return swapHost(quickService.href, `${cleanName}.${domain}`);
           })()
         : quickService.href,
@@ -1319,7 +1319,7 @@ const HomepageConfigGUI = () => {
             ...quickService.widget,
             url: (() => {
               const domain = uiPreferences.globalDomain || 'local';
-              const cleanName = quickService.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+              const cleanName = quickService.name.toLowerCase().replaceAll(/[^a-z0-9]/g, '');
               return swapHost(quickService.widget.url, `${cleanName}.${domain}`);
             })()
           }
@@ -1427,7 +1427,7 @@ const HomepageConfigGUI = () => {
       href: quickService.href.includes('localhost') 
         ? (() => {
             const domain = uiPreferences.globalDomain || 'local';
-            const cleanName = quickService.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const cleanName = quickService.name.toLowerCase().replaceAll(/[^a-z0-9]/g, '');
             return swapHost(quickService.href, `${cleanName}.${domain}`);
           })()
         : quickService.href,
@@ -1436,7 +1436,7 @@ const HomepageConfigGUI = () => {
             ...quickService.widget,
             url: (() => {
               const domain = uiPreferences.globalDomain || 'local';
-              const cleanName = quickService.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+              const cleanName = quickService.name.toLowerCase().replaceAll(/[^a-z0-9]/g, '');
               return swapHost(quickService.widget.url, `${cleanName}.${domain}`);
             })()
           }
@@ -1899,7 +1899,7 @@ const HomepageConfigGUI = () => {
           if (widget.options.limit) yamlStr += `    limit: ${widget.options.limit}\n`;
           if (widget.options.layout) yamlStr += `    layout: ${widget.options.layout}\n`;
           if (widget.options.categories) {
-            const categories = widget.options.categories.split(',').map(cat => cat.trim()).filter(cat => cat);
+            const categories = widget.options.categories.split(',').map(cat => cat.trim()).filter(Boolean);
             if (categories.length > 0) {
               yamlStr += `    categories:\n`;
               categories.forEach(category => {
@@ -2891,7 +2891,7 @@ const validateWidget = (widget) => {
                                   id={`proxmox-vmid-${service.id}`}
                                   type="number"
                                   value={service.proxmoxVMID || 101}
-                                  onChange={(e) => updateService(service.id, { proxmoxVMID: parseInt(e.target.value) || 101 })}
+                                  onChange={(e) => updateService(service.id, { proxmoxVMID: Number.parseInt(e.target.value) || 101 })}
                                   placeholder="101"
                                   className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all"
                                 />
@@ -2942,7 +2942,7 @@ const validateWidget = (widget) => {
                                 type="text"
                                 value={service.ping?.url || ''}
                                 onChange={(e) => updateService(service.id, { 
-                                  ping: { ...(service.ping || {}), url: e.target.value }
+                                  ping: { ...service.ping, url: e.target.value }
                                 })}
                                 placeholder="example.com or http://localhost:8080"
                                 className="w-full bg-slate-600 text-white px-2 py-1 rounded border border-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-sm"
@@ -2955,7 +2955,7 @@ const validateWidget = (widget) => {
                                 type="number"
                                 value={service.ping?.interval || 30}
                                 onChange={(e) => updateService(service.id, { 
-                                  ping: { ...(service.ping || {}), interval: parseInt(e.target.value) || 30 }
+                                  ping: { ...service.ping, interval: Number.parseInt(e.target.value) || 30 }
                                 })}
                                 placeholder="30"
                                 min="10"
@@ -2971,7 +2971,7 @@ const validateWidget = (widget) => {
                                 type="checkbox"
                                 checked={service.ping?.enabled || false}
                                 onChange={(e) => updateService(service.id, { 
-                                  ping: { ...(service.ping || {}), enabled: e.target.checked }
+                                  ping: { ...service.ping, enabled: e.target.checked }
                                 })}
                                 className="rounded"
                               />
@@ -2983,7 +2983,7 @@ const validateWidget = (widget) => {
                                 type="checkbox"
                                 checked={service.ping?.public || false}
                                 onChange={(e) => updateService(service.id, { 
-                                  ping: { ...(service.ping || {}), public: e.target.checked }
+                                  ping: { ...service.ping, public: e.target.checked }
                                 })}
                                 className="rounded"
                               />
@@ -3286,7 +3286,7 @@ const validateWidget = (widget) => {
                                       id={`subgroup-proxmox-vmid-${service.id}`}
                                       type="number"
                                       value={service.proxmoxVMID || 101}
-                                      onChange={(e) => updateService(service.id, { proxmoxVMID: parseInt(e.target.value) || 101 })}
+                                      onChange={(e) => updateService(service.id, { proxmoxVMID: Number.parseInt(e.target.value) || 101 })}
                                       placeholder="101"
                                       className="w-full bg-slate-500 text-white px-2 py-1 rounded border border-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
                                     />
@@ -3337,7 +3337,7 @@ const validateWidget = (widget) => {
                                     type="text"
                                     value={service.ping?.url || ''}
                                     onChange={(e) => updateService(service.id, { 
-                                      ping: { ...(service.ping || {}), url: e.target.value }
+                                      ping: { ...service.ping, url: e.target.value }
                                     })}
                                     placeholder="example.com or http://localhost:8080"
                                     className="w-full bg-slate-500 text-white px-2 py-1 rounded border border-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all text-xs"
@@ -3350,7 +3350,7 @@ const validateWidget = (widget) => {
                                     type="number"
                                     value={service.ping?.interval || 30}
                                     onChange={(e) => updateService(service.id, { 
-                                      ping: { ...(service.ping || {}), interval: parseInt(e.target.value) || 30 }
+                                      ping: { ...service.ping, interval: Number.parseInt(e.target.value) || 30 }
                                     })}
                                     placeholder="30"
                                     min="10"
@@ -3366,7 +3366,7 @@ const validateWidget = (widget) => {
                                     type="checkbox"
                                     checked={service.ping?.enabled || false}
                                     onChange={(e) => updateService(service.id, { 
-                                      ping: { ...(service.ping || {}), enabled: e.target.checked }
+                                      ping: { ...service.ping, enabled: e.target.checked }
                                     })}
                                     className="rounded"
                                   />
@@ -3378,7 +3378,7 @@ const validateWidget = (widget) => {
                                     type="checkbox"
                                     checked={service.ping?.public || false}
                                     onChange={(e) => updateService(service.id, { 
-                                      ping: { ...(service.ping || {}), public: e.target.checked }
+                                      ping: { ...service.ping, public: e.target.checked }
                                     })}
                                     className="rounded"
                                   />
@@ -4051,7 +4051,7 @@ const validateWidget = (widget) => {
                                   value={widget.options.refresh || 30}
                                   onChange={(e) => {
                                     const updatedWidgets = [...informationWidgets.widgets];
-                                    updatedWidgets[index].options.refresh = parseInt(e.target.value) || 30;
+                                    updatedWidgets[index].options.refresh = Number.parseInt(e.target.value) || 30;
                                     setInformationWidgets({ ...informationWidgets, widgets: updatedWidgets });
                                   }}
                                   min="5"
@@ -4211,7 +4211,7 @@ const validateWidget = (widget) => {
                                   value={widget.options.limit || 10}
                                   onChange={(e) => {
                                     const updatedWidgets = [...informationWidgets.widgets];
-                                    updatedWidgets[index].options.limit = parseInt(e.target.value) || 10;
+                                    updatedWidgets[index].options.limit = Number.parseInt(e.target.value) || 10;
                                     setInformationWidgets({ ...informationWidgets, widgets: updatedWidgets });
                                   }}
                                   min="1"
@@ -4616,7 +4616,7 @@ const validateWidget = (widget) => {
                                   value={vm.vmid}
                                   onChange={(e) => {
                                     const updatedVMs = [...proxmoxConfig.vms];
-                                    updatedVMs[index].vmid = parseInt(e.target.value) || 100;
+                                    updatedVMs[index].vmid = Number.parseInt(e.target.value) || 100;
                                     setProxmoxConfig({ ...proxmoxConfig, vms: updatedVMs });
                                   }}
                                   min="100"
